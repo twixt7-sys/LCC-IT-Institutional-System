@@ -3,51 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LCC IT Student Portal — BSIT Prototype</title>
+<title>LCC IT Student Portal · BSIT Prototype</title>
 <style>
   :root{
-    --navy-950:#081a33;
-    --navy-900:#0b2447;
+    --navy-950:#08152b;
+    --navy-900:#0c1f3d;
     --navy-800:#123262;
     --navy-700:#19407c;
     --navy-600:#1f4e96;
     --navy-500:#2a5fb0;
-    --navy-100:#e8eef7;
-    --navy-50:#f4f7fc;
+    --navy-100:#e9eff8;
+    --navy-50:#f5f8fc;
     --white:#ffffff;
-    --ink:#1a2333;
-    --ink-soft:#5a6779;
-    --line:#dde4ee;
+    --ink:#14203a;
+    --ink-soft:#65718a;
+    --line:#e7ecf4;
+    --line-soft:#eef2f8;
+    --accent:#2f6df0;
+    --accent-soft:#eaf1ff;
+    --ring-track:#edf1f8;
     --green:#15803d; --green-bg:#dcfce7;
     --amber:#b45309; --amber-bg:#fef3c7;
     --red:#b91c1c;   --red-bg:#fee2e2;
     --blue:#1d4ed8;  --blue-bg:#dbeafe;
-    --radius:10px;
-    --shadow:0 1px 3px rgba(11,36,71,.08), 0 4px 16px rgba(11,36,71,.06);
-    --font:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+    --radius:16px;
+    --radius-sm:11px;
+    --shadow:0 1px 2px rgba(16,38,73,.05), 0 8px 24px -10px rgba(16,38,73,.16);
+    --shadow-lg:0 24px 60px -18px rgba(16,38,73,.32);
+    --font:'Inter','Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box}
+  /* hide all scrollbars (scrolling still works) */
+  *{scrollbar-width:none;-ms-overflow-style:none}
+  *::-webkit-scrollbar{width:0;height:0;display:none}
   html,body{height:100%}
-  body{font-family:var(--font);color:var(--ink);background:var(--navy-50);font-size:14.5px;line-height:1.5}
+  body{font-family:var(--font);color:var(--ink);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(1100px 520px at 100% -8%, #e8f0fc 0%, rgba(232,240,252,0) 60%),
+      radial-gradient(900px 520px at -8% 108%, #e7f2fb 0%, rgba(231,242,251,0) 55%),
+      var(--navy-50);
+    background-attachment:fixed}
   button{font-family:inherit;cursor:pointer}
   input,select,textarea{font-family:inherit;font-size:14px}
   a{color:var(--navy-600);text-decoration:none}
   ::selection{background:var(--navy-600);color:#fff}
 
   /* ---------- generic ---------- */
-  .btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:600;transition:.15s}
-  .btn-primary{background:var(--navy-800);color:#fff}
-  .btn-primary:hover{background:var(--navy-600)}
-  .btn-outline{background:#fff;color:var(--navy-800);border:1.5px solid var(--navy-800)}
-  .btn-outline:hover{background:var(--navy-100)}
+  .btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:10px;padding:9px 16px;font-size:14px;font-weight:600;transition:transform .12s,background .15s,box-shadow .15s,border-color .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--navy-900);color:#fff;box-shadow:0 6px 16px -8px rgba(12,31,61,.7)}
+  .btn-primary:hover{background:var(--navy-700)}
+  .btn-outline{background:#fff;color:var(--navy-800);border:1.5px solid var(--line);box-shadow:var(--shadow)}
+  .btn-outline:hover{border-color:var(--navy-600);background:#fff;color:var(--navy-900)}
   .btn-ghost{background:transparent;color:var(--ink-soft)}
   .btn-ghost:hover{background:var(--navy-100);color:var(--navy-800)}
   .btn-danger{background:var(--red);color:#fff}
-  .btn-sm{padding:5px 11px;font-size:12.5px;border-radius:6px}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-  .card-pad{padding:20px}
-  .card h3{font-size:15px;color:var(--navy-900);margin-bottom:12px}
+  .btn-sm{padding:6px 12px;font-size:12.5px;border-radius:8px}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .card{border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+    background:
+      radial-gradient(circle 150px at calc(100% + 26px) -26px, rgba(47,109,240,.09) 0 150px, transparent 151px),
+      radial-gradient(circle 110px at -22px calc(100% + 22px), rgba(20,180,190,.07) 0 110px, transparent 111px),
+      linear-gradient(150deg,#ffffff 0%,#f4f8ff 100%)}
+  .card-pad{padding:22px}
+  .card h3{position:relative;font-size:14px;color:var(--navy-900);margin-bottom:14px;letter-spacing:-.01em;padding-left:12px}
+  .card h3::before{content:'';position:absolute;left:0;top:2px;bottom:2px;width:3.5px;border-radius:3px;background:linear-gradient(180deg,var(--accent),var(--navy-600))}
   .badge{display:inline-flex;align-items:center;gap:5px;padding:2.5px 10px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.02em}
   .b-present{background:var(--green-bg);color:var(--green)}
   .b-late{background:var(--amber-bg);color:var(--amber)}
@@ -60,13 +80,14 @@
   .b-rejected{background:var(--red-bg);color:var(--red)}
   .b-gray{background:#eef1f6;color:var(--ink-soft)}
   table{width:100%;border-collapse:collapse}
-  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);text-align:left;padding:10px 14px;border-bottom:2px solid var(--line);background:var(--navy-50)}
-  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--navy-50);font-weight:700}
+  td{padding:13px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
   tr:last-child td{border-bottom:none}
+  tbody tr{transition:background .12s}
   tbody tr:hover{background:var(--navy-50)}
   .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
-  .toolbar input[type=search],.toolbar select,.filter-input{padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;outline:none;min-width:160px}
+  .toolbar input[type=search],.toolbar select,.filter-input{padding:9px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none;min-width:160px;box-shadow:var(--shadow)}
   .toolbar input:focus,.filter-input:focus{border-color:var(--navy-600);box-shadow:0 0 0 3px rgba(31,78,150,.12)}
   .pagination{display:flex;gap:6px;align-items:center;justify-content:flex-end;padding:12px 14px;color:var(--ink-soft);font-size:13px}
   .pagination button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px}
@@ -125,10 +146,10 @@
 
   /* ---------- app shell ---------- */
   .shell{display:flex;min-height:100vh}
-  .sidebar{width:248px;background:var(--navy-900);color:#cbd8ec;display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;z-index:40;transition:transform .2s}
-  .sidebar .brand{padding:18px 18px 14px;color:#fff;border-bottom:1px solid rgba(255,255,255,.09)}
-  .sidebar .brand .logo{width:34px;height:34px;font-size:16px}
-  .nav-scroll{flex:1;overflow-y:auto;padding:12px 10px 20px}
+  .sidebar{width:252px;background:linear-gradient(180deg,var(--navy-950),var(--navy-900) 60%);color:#cbd8ec;display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;z-index:40;transition:transform .2s;border-right:1px solid rgba(255,255,255,.06)}
+  .sidebar .brand{padding:20px 18px 16px;color:#fff;border-bottom:1px solid rgba(255,255,255,.07)}
+  .sidebar .brand .logo{width:36px;height:36px;font-size:16px;border-radius:11px;background:linear-gradient(150deg,#fff,#dbe6f7)}
+  .nav-scroll{flex:1;overflow-y:auto;padding:14px 12px 20px}
   .nav-group-wrap{margin-bottom:2px}
   .nav-group{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:#7e93b5;padding:16px 12px 6px;font-weight:700;transition:color .15s}
   .nav-group:hover{color:#aebdd6}
@@ -136,37 +157,61 @@
   .nav-group-wrap.collapsed .nav-caret{transform:rotate(-90deg)}
   .nav-items{overflow:hidden;transition:max-height .2s ease}
   .nav-group-wrap.collapsed .nav-items{max-height:0!important}
-  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:8px;color:#cbd8ec;font-size:14px;font-weight:500;margin-bottom:2px;position:relative}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#cbd8ec;font-size:14px;font-weight:500;margin-bottom:2px;position:relative;transition:background .12s,color .12s}
   .nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
-  .nav-item.active{background:#fff;color:var(--navy-900);font-weight:700}
+  .nav-item.active{background:#fff;color:var(--navy-900);font-weight:700;box-shadow:0 8px 20px -10px rgba(0,0,0,.5)}
+  .nav-item.active::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:0 3px 3px 0;background:var(--accent)}
   .nav-item .ic{width:20px;text-align:center;font-size:15px}
   .nav-item .count{margin-left:auto;background:var(--red);color:#fff;font-size:10.5px;font-weight:700;border-radius:99px;padding:1px 7px}
   .nav-item.active .count{background:var(--red)}
   .side-foot{padding:14px;border-top:1px solid rgba(255,255,255,.09);font-size:11.5px;color:#7e93b5}
-  .main{flex:1;margin-left:248px;display:flex;flex-direction:column;min-width:0}
-  .topbar{height:60px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 22px;position:sticky;top:0;z-index:30}
-  .topbar .search{flex:1;max-width:420px;position:relative}
-  .topbar .search input{width:100%;padding:8px 13px 8px 36px;border:1px solid var(--line);border-radius:99px;background:var(--navy-50);outline:none}
-  .topbar .search .ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-soft)}
-  .icon-btn{position:relative;width:38px;height:38px;border-radius:50%;border:none;background:transparent;font-size:17px;color:var(--navy-800)}
+  .main{flex:1;margin-left:252px;display:flex;flex-direction:column;min-width:0;transition:margin-left .2s ease}
+  .topbar{height:64px;background:linear-gradient(100deg,#bfe1ff 0%,#d3ecff 45%,#e6f5ff 100%);backdrop-filter:saturate(1.5) blur(14px);-webkit-backdrop-filter:saturate(1.5) blur(14px);border-bottom:1px solid #a9d3f5;box-shadow:0 2px 10px -6px rgba(56,132,214,.35);display:flex;align-items:center;gap:14px;padding:0 24px;position:sticky;top:0;z-index:30}
+  .topbar .search{flex:1;max-width:440px;position:relative}
+  .topbar .search input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--line);border-radius:99px;background:var(--navy-50);outline:none;transition:.15s}
+  .topbar .search input:focus{border-color:var(--navy-600);background:#fff;box-shadow:0 0 0 4px rgba(47,109,240,.1)}
+  .topbar .search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-soft)}
+  .icon-btn{position:relative;width:38px;height:38px;border-radius:50%;border:none;background:transparent;font-size:17px;color:var(--navy-800);transition:background .12s}
   .icon-btn:hover{background:var(--navy-100)}
   .icon-btn .dot{position:absolute;top:6px;right:6px;background:var(--red);color:#fff;font-size:9.5px;font-weight:700;border-radius:99px;padding:0 4.5px;line-height:14px}
-  .role-pill{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 6px;border:1px solid var(--line);border-radius:99px;background:#fff}
+  .role-pill{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 6px;border:1px solid var(--line);border-radius:99px;background:#fff;box-shadow:var(--shadow)}
   .role-pill b{font-size:13px;color:var(--navy-900);line-height:1.15;display:block}
   .role-pill small{font-size:11px;color:var(--ink-soft)}
-  .content{padding:26px 28px 60px;max-width:1280px;width:100%;margin:0 auto}
-  .breadcrumbs{font-size:12.5px;color:var(--ink-soft);margin-bottom:6px}
+  .content{padding:28px 32px 64px;max-width:1300px;width:100%;margin:0 auto}
+  .breadcrumbs{font-size:12.5px;color:var(--ink-soft);margin-bottom:8px}
   .breadcrumbs a{color:var(--ink-soft)}
   .breadcrumbs a:hover{color:var(--navy-700)}
-  .page-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:22px}
-  .page-head h1{font-size:23px;color:var(--navy-900)}
-  .page-head .sub{color:var(--ink-soft);margin-top:3px}
-  .hamb{display:none}
+  /* deep-colored page header banner (all pages) */
+  .page-head{position:relative;overflow:hidden;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;
+    padding:24px 28px;border-radius:20px;color:#fff;
+    background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 52%,var(--navy-600) 100%);
+    box-shadow:0 20px 44px -20px rgba(12,31,61,.65)}
+  .page-head::before{content:'';position:absolute;inset:0;background:
+      radial-gradient(560px 200px at 102% -50%, rgba(47,109,240,.55), transparent 62%),
+      radial-gradient(360px 180px at -10% 140%, rgba(20,180,190,.28), transparent 60%);pointer-events:none}
+  .page-head>*{position:relative;z-index:1}
+  .page-head .head-main{min-width:0}
+  .page-head h1{font-size:26px;color:#fff;letter-spacing:-.02em;font-weight:800}
+  .page-head .sub{color:rgba(219,231,247,.82);margin-top:6px;font-size:13.5px}
+  .page-head .breadcrumbs{color:rgba(190,207,233,.85);margin-bottom:9px}
+  .page-head .breadcrumbs a{color:rgba(190,207,233,.85)}
+  .page-head .breadcrumbs a:hover{color:#fff}
+  .page-head .head-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .page-head .btn-outline{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.32);color:#fff;box-shadow:none}
+  .page-head .btn-outline:hover{background:rgba(255,255,255,.22);border-color:#fff;color:#fff}
+  .page-head .btn-primary{background:#fff;color:var(--navy-900);box-shadow:0 8px 20px -10px rgba(0,0,0,.5)}
+  .page-head .btn-primary:hover{background:var(--accent-soft)}
+  @media(max-width:640px){.page-head{padding:20px}.page-head h1{font-size:22px}}
+  .hamb{display:inline-flex}
+  /* collapsible sidebar (desktop) */
+  body.nav-collapsed .sidebar{transform:translateX(-100%)}
+  body.nav-collapsed .main{margin-left:0}
+  .side-close{margin-left:auto;width:30px;height:30px;flex-shrink:0;border:none;border-radius:9px;background:rgba(255,255,255,.06);color:#aebdd6;font-size:14px;display:grid;place-items:center;cursor:pointer;transition:.14s}
+  .side-close:hover{background:rgba(255,255,255,.16);color:#fff}
   @media(max-width:1023px){
     .sidebar{transform:translateX(-100%)}
     body.side-open .sidebar{transform:none;box-shadow:0 0 0 100vmax rgba(8,26,51,.45)}
     .main{margin-left:0}
-    .hamb{display:inline-flex}
     .content{padding:20px 16px 60px}
   }
 
@@ -177,6 +222,34 @@
   .stat .lbl{font-size:12.5px;color:var(--ink-soft)}
   .stat .trend{margin-left:auto;font-size:12px;font-weight:700}
   .trend.up{color:var(--green)} .trend.down{color:var(--red)}
+
+  /* ---------- circular metric carousel ---------- */
+  .rail{position:relative;margin-bottom:20px}
+  .rail-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:10px 4px 16px;scrollbar-width:none;scroll-behavior:smooth}
+  .rail-track::-webkit-scrollbar{display:none}
+  .metric{flex:0 0 auto;width:176px;scroll-snap-align:start;background:linear-gradient(180deg,#ffffff 0%,#f2f6fe 100%);border:1px solid #e2e9f5;border-radius:20px;box-shadow:var(--shadow);
+    padding:20px 16px 18px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;transition:transform .18s,box-shadow .18s,border-color .18s}
+  .metric::before{content:'';position:absolute;top:0;left:22px;right:22px;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,transparent,var(--ring),transparent);opacity:.75}
+  .metric{position:relative}
+  .metric:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:#cdd9ee}
+  .metric-ring{--sz:96px;position:relative;width:var(--sz);height:var(--sz);border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+    background:conic-gradient(var(--ring) calc(var(--pct,100)*1%), var(--ring-track) 0)}
+  .metric-ring::before{content:'';position:absolute;inset:10px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px var(--line-soft)}
+  .metric-in{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;line-height:1}
+  .metric-ic{font-size:15px;margin-bottom:3px;filter:saturate(1.05)}
+  .metric-val{font-size:21px;font-weight:800;color:var(--navy-900);letter-spacing:-.02em}
+  .metric-meta{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .metric-lbl{font-size:12px;color:var(--ink-soft);font-weight:600;line-height:1.3;max-width:150px}
+  .metric-trend{font-size:11px;font-weight:800;padding:2px 9px;border-radius:99px;letter-spacing:.01em}
+  .metric-trend.up{background:var(--green-bg);color:var(--green)}
+  .metric-trend.down{background:var(--red-bg);color:var(--red)}
+  .metric-trend.flat{background:var(--navy-100);color:var(--navy-700)}
+  .rail-nav{position:absolute;top:calc(50% - 8px);transform:translateY(-50%);z-index:3;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
+    background:rgba(255,255,255,.92);backdrop-filter:blur(6px);color:var(--navy-800);font-size:18px;display:grid;place-items:center;box-shadow:var(--shadow);transition:.14s}
+  .rail-nav:hover{background:#fff;color:var(--navy-900);border-color:var(--navy-600)}
+  .rail-nav:disabled{opacity:0;pointer-events:none}
+  .rail-nav.prev{left:-8px} .rail-nav.next{right:-8px}
+  .rail.no-nav .rail-nav{display:none}
 
   /* attendance ring */
   .ring-wrap{display:flex;align-items:center;gap:20px}
@@ -316,7 +389,7 @@
 
 <script>
 /* =====================================================================
-   LCC IT Student Portal — BSIT interactive prototype (single file)
+   LCC IT Student Portal · BSIT interactive prototype (single file)
    Built from definition_data/: system-overview, module-registry,
    roles-and-permissions, pages-and-routes, frontend-architecture,
    database-schema. Navy blue & white institutional theme.
@@ -346,7 +419,7 @@ const DB = {
   myAttendance: [
     { date:'Jul 21, 2026', subject:'IT301', session:'Lecture', time:'08:04 AM', status:'PRESENT' },
     { date:'Jul 21, 2026', subject:'IT304', session:'Laboratory', time:'10:21 AM', status:'LATE' },
-    { date:'Jul 20, 2026', subject:'IT302', session:'Lecture', time:'—', status:'ABSENT' },
+    { date:'Jul 20, 2026', subject:'IT302', session:'Lecture', time:'–', status:'ABSENT' },
     { date:'Jul 20, 2026', subject:'IT303', session:'Lecture', time:'01:00 PM', status:'PRESENT' },
     { date:'Jul 18, 2026', subject:'GE108', session:'Lecture', time:'09:02 AM', status:'PRESENT' },
     { date:'Jul 17, 2026', subject:'IT304', session:'Laboratory', time:'10:00 AM', status:'PRESENT' },
@@ -354,7 +427,7 @@ const DB = {
     { date:'Jul 16, 2026', subject:'IT302', session:'Lecture', time:'11:32 AM', status:'EXCUSED' }
   ],
   corrections: [
-    { id:'COR-0142', date:'Jul 20, 2026', subject:'IT302', from:'ABSENT', to:'EXCUSED', reason:'Medical appointment — clinic slip attached', status:'PENDING', reviewer:'—', note:'' },
+    { id:'COR-0142', date:'Jul 20, 2026', subject:'IT302', from:'ABSENT', to:'EXCUSED', reason:'Medical appointment · clinic slip attached', status:'PENDING', reviewer:'–', note:'' },
     { id:'COR-0137', date:'Jul 14, 2026', subject:'IT304', from:'ABSENT', to:'PRESENT', reason:'Scanner failed, instructor aware I was in class', status:'APPROVED', reviewer:'Engr. M. Reyes', note:'Confirmed present in class list.' },
     { id:'COR-0129', date:'Jul 08, 2026', subject:'IT303', from:'LATE', to:'PRESENT', reason:'Arrived on time but queue was long', status:'REJECTED', reviewer:'Ms. K. Bautista', note:'Scan recorded 22 mins after start.' }
   ],
@@ -404,10 +477,10 @@ const DB = {
   ],
   calendar: [
     { date:'Jul 27, 2026', type:'HOLIDAY',      title:'INC Anniversary (Regular Holiday)', affects:'All sections', src:'OSAS' },
-    { date:'Jul 30, 2026', type:'SUSPENSION',   title:'Typhoon signal #2 — classes suspended', affects:'All sections', src:'LOCAL' },
+    { date:'Jul 30, 2026', type:'SUSPENSION',   title:'Typhoon signal #2 · classes suspended', affects:'All sections', src:'LOCAL' },
     { date:'Aug 02, 2026', type:'MAKEUP_CLASS', title:'IT304 makeup lab (for Jul 30)', affects:'BSIT-3A · CL-301 · 9:00–12:00', src:'LOCAL' },
     { date:'Aug 21, 2026', type:'HOLIDAY',      title:'Ninoy Aquino Day', affects:'All sections', src:'OSAS' },
-    { date:'Aug 25, 2026', type:'SPECIAL_EVENT',title:'IT Week Opening — QR event session', affects:'All BSIT sections · Gymnasium', src:'LOCAL' }
+    { date:'Aug 25, 2026', type:'SPECIAL_EVENT',title:'IT Week Opening · QR event session', affects:'All BSIT sections · Gymnasium', src:'LOCAL' }
   ],
   openSessions: [
     { id:'ses-981', class:'IT301 · BSIT-3A', faculty:'Engr. M. Reyes', room:'CL-204', started:'8:00 AM', present:31, late:3, enrolled:38 },
@@ -415,17 +488,17 @@ const DB = {
     { id:'ses-983', class:'GE108 · BSIT-1A', faculty:'Ms. P. Cruz', room:'RM-310', started:'9:00 AM', present:40, late:2, enrolled:44 }
   ],
   auditLogs: [
-    { at:'Jul 21, 2026 10:42', actor:'Engr. M. Reyes', action:'attendance.override', entity:'attendance_records', detail:'IT304 · Lim, Kevin — LATE → PRESENT', reason:'Scanner queue delay verified', before:'"status": "LATE"', after:'"status": "PRESENT"' },
+    { at:'Jul 21, 2026 10:42', actor:'Engr. M. Reyes', action:'attendance.override', entity:'attendance_records', detail:'IT304 · Lim, Kevin · LATE → PRESENT', reason:'Scanner queue delay verified', before:'"status": "LATE"', after:'"status": "PRESENT"' },
     { at:'Jul 21, 2026 09:15', actor:'Carlo T. Dizon', action:'correction.approve', entity:'attendance_corrections', detail:'COR-0137 approved', before:'"status": "PENDING"', after:'"status": "APPROVED"' },
-    { at:'Jul 21, 2026 07:58', actor:'system', action:'osas.sync', entity:'osas_sync_logs', detail:'Nightly student sync — 1,987 processed, 3 updated', before:'', after:'"status": "SUCCESS"' },
+    { at:'Jul 21, 2026 07:58', actor:'system', action:'osas.sync', entity:'osas_sync_logs', detail:'Nightly student sync · 1,987 processed, 3 updated', before:'', after:'"status": "SUCCESS"' },
     { at:'Jul 20, 2026 16:30', actor:'System Administrator', action:'settings.update', entity:'settings', detail:'QR rotation interval changed', before:'"qr_rotation_seconds": 90', after:'"qr_rotation_seconds": 60' },
-    { at:'Jul 20, 2026 14:12', actor:'Carlo T. Dizon', action:'student.import', entity:'students', detail:'CSV import — 12 rows, 11 ok, 1 skipped (duplicate)', before:'', after:'"imported": 11' },
+    { at:'Jul 20, 2026 14:12', actor:'Carlo T. Dizon', action:'student.import', entity:'students', detail:'CSV import · 12 rows, 11 ok, 1 skipped (duplicate)', before:'', after:'"imported": 11' },
     { at:'Jul 20, 2026 08:02', actor:'Engr. M. Reyes', action:'session.open', entity:'class_sessions', detail:'IT301 · BSIT-3A session opened (dynamic QR)', before:'"status": "SCHEDULED"', after:'"status": "OPEN"' }
   ],
   notifications: [
     { ic:'✅', title:'Correction request approved', body:'Your request COR-0137 (IT304, Jul 14) was approved by Engr. M. Reyes.', time:'2h ago', unread:true },
-    { ic:'⚠️', title:'Attendance warning — IT304', body:'Your attendance in Advanced Database Systems dropped to 71%. Threshold is 75%.', time:'5h ago', unread:true },
-    { ic:'📅', title:'Class suspended — Jul 30', body:'All classes suspended due to Typhoon signal #2. A makeup lab was scheduled for Aug 02.', time:'1d ago', unread:true },
+    { ic:'⚠️', title:'Attendance warning · IT304', body:'Your attendance in Advanced Database Systems dropped to 71%. Threshold is 75%.', time:'5h ago', unread:true },
+    { ic:'📅', title:'Class suspended · Jul 30', body:'All classes suspended due to Typhoon signal #2. A makeup lab was scheduled for Aug 02.', time:'1d ago', unread:true },
     { ic:'📢', title:'OSAS profile synced', body:'Your student profile was refreshed from OSAS (section, status, photo).', time:'2d ago', unread:false },
     { ic:'🔐', title:'New device login', body:'Chrome on Windows · Jul 18, 9:41 AM · If this was not you, revoke the session in Profile.', time:'3d ago', unread:false }
   ],
@@ -494,6 +567,46 @@ function ringSVG(pct, color='#19407c', size=120, sw=11){
     </svg>
     <div class="pct">${pct}%<small>overall</small></div>
   </div>`;
+}
+/* circular metric + horizontal carousel ("overview parameters") */
+const METRIC_TONE = { good:'#16a34a', warn:'#d9820b', bad:'#dc2626', brand:'#2f6df0', navy:'#19407c' };
+function metric(m){
+  const hasPct = typeof m.pct === 'number';
+  const tone = m.tone || (hasPct ? (m.pct < 75 ? 'bad' : m.pct < 85 ? 'warn' : 'good') : 'brand');
+  const pct = hasPct ? Math.max(0, Math.min(100, m.pct)) : 100;
+  const ring = METRIC_TONE[tone] || METRIC_TONE.brand;
+  const trend = m.trend ? `<span class="metric-trend ${m.trendDir||'up'}">${m.trend}</span>` : '';
+  return `<article class="metric" style="--ring:${ring};--pct:${pct}">
+    <div class="metric-ring"><div class="metric-in">
+      ${m.ic ? `<span class="metric-ic">${m.ic}</span>` : ''}<span class="metric-val">${m.val}</span>
+    </div></div>
+    <div class="metric-meta"><span class="metric-lbl">${m.lbl}</span>${trend}</div>
+  </article>`;
+}
+function metricRail(items){
+  return `<section class="rail">
+    <button class="rail-nav prev" aria-label="Scroll left" onclick="railScroll(this,-1)">‹</button>
+    <div class="rail-track">${items.map(metric).join('')}</div>
+    <button class="rail-nav next" aria-label="Scroll right" onclick="railScroll(this,1)">›</button>
+  </section>`;
+}
+function railScroll(btn, dir){
+  const track = btn.parentElement.querySelector('.rail-track');
+  track.scrollBy({ left: dir * Math.min(track.clientWidth * 0.8, 360), behavior:'smooth' });
+}
+function initRails(){
+  document.querySelectorAll('.rail').forEach(rail => {
+    const track = rail.querySelector('.rail-track');
+    const prev = rail.querySelector('.rail-nav.prev'), next = rail.querySelector('.rail-nav.next');
+    const sync = () => {
+      const overflow = track.scrollWidth - track.clientWidth > 4;
+      rail.classList.toggle('no-nav', !overflow);
+      if(prev) prev.disabled = track.scrollLeft <= 2;
+      if(next) next.disabled = track.scrollLeft >= track.scrollWidth - track.clientWidth - 2;
+    };
+    track.addEventListener('scroll', sync, { passive:true });
+    sync();
+  });
 }
 /* fake QR: deterministic-random module grid with finder patterns */
 function drawQR(canvas, seed){
@@ -580,6 +693,7 @@ function render(){
   }
   if(!fn){ fn = routes['/404']; }
   fn(param);
+  initRails();
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange', render);
@@ -597,6 +711,13 @@ function logout(){
   nav('/login');
 }
 function switchRole(role){ if(role){ loginAs(role); } }
+function toggleSidebar(){
+  if(window.matchMedia('(max-width:1023px)').matches){
+    document.body.classList.toggle('side-open');
+  } else {
+    document.body.classList.toggle('nav-collapsed');
+  }
+}
 function toggleNavGroup(name){
   S.navCollapsed[name] = !S.navCollapsed[name];
   const wrap = document.querySelector('.nav-group-wrap[data-group="'+ (window.CSS && CSS.escape ? CSS.escape(name) : name) +'"]');
@@ -619,7 +740,7 @@ route('/', () => {
       <div class="hero-copy">
         <span class="eyebrow">BSIT Department · Legacy IT Student Portal</span>
         <h1>Attendance in seconds.<br>One scan, zero paperwork.</h1>
-        <p>Faculty project a dynamic QR code that refreshes every minute. Students scan with their phone and are marked Present or Late instantly — with live monitoring, correction workflows, and exportable reports for the whole department.</p>
+        <p>Faculty project a dynamic QR code that refreshes every minute. Students scan with their phone and are marked Present or Late instantly · with live monitoring, correction workflows, and exportable reports for the whole department.</p>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <button class="btn btn-primary" style="background:#fff;color:var(--navy-900);padding:12px 22px" onclick="nav('/login')">Sign in to the portal →</button>
           <button class="btn btn-outline" style="border-color:rgba(255,255,255,.5);color:#fff;background:transparent;padding:12px 22px" onclick="document.getElementById('feat').scrollIntoView({behavior:'smooth'})">Learn more</button>
@@ -627,18 +748,18 @@ route('/', () => {
       </div>
       <div class="hero-qr">
         ${qrBlock('hero-qr', 190)}
-        <div class="small muted">Dynamic QR · regenerates every 60s<br><b style="color:var(--navy-900)">IT301 — Web Systems &amp; Technologies 2</b></div>
+        <div class="small muted">Dynamic QR · regenerates every 60s<br><b style="color:var(--navy-900)">IT301 · Web Systems &amp; Technologies 2</b></div>
       </div>
     </section>
     <div class="feat-row" id="feat">
       <div class="feat"><div class="ic">⚡</div><b>Sub-5-second capture</b><span>Encrypted, time-limited QR codes with server-side validation and duplicate prevention.</span></div>
       <div class="feat"><div class="ic">📡</div><b>Live monitoring</b><span>Faculty see students appear on the roster in real time as they scan in.</span></div>
-      <div class="feat"><div class="ic">🎓</div><b>OSAS single sign-on</b><span>Students use university credentials — active students only, no duplicate accounts.</span></div>
-      <div class="feat"><div class="ic">📊</div><b>Exportable reports</b><span>Daily to semester reports per student, subject, or instructor — CSV, Excel, PDF.</span></div>
+      <div class="feat"><div class="ic">🎓</div><b>OSAS single sign-on</b><span>Students use university credentials · active students only, no duplicate accounts.</span></div>
+      <div class="feat"><div class="ic">📊</div><b>Exportable reports</b><span>Daily to semester reports per student, subject, or instructor · CSV, Excel, PDF.</span></div>
     </div>
     <footer class="landing-foot">
       <span>© 2026 LCC Information Technology Department · BSIT</span>
-      <span>Phase 1 — QR Attendance · v1.0 prototype</span>
+      <span>Phase 1 · QR Attendance · v1.0 prototype</span>
     </footer>
   </div>`;
   drawQR($('#hero-qr'), 20260721);
@@ -660,7 +781,7 @@ route('/login', () => {
     <div class="login-main">
       <div class="login-box">
         <h1>Sign in</h1>
-        <p>One form for everyone — your role is detected automatically.</p>
+        <p>One form for everyone · your role is detected automatically.</p>
         <form onsubmit="event.preventDefault(); loginAs('STUDENT')">
           <div class="field">
             <label>Student ID or Email</label>
@@ -678,7 +799,7 @@ route('/login', () => {
         </form>
         <p class="small muted" style="margin-top:14px">Students: use your <b>university (OSAS) credentials</b>. Inactive or alumni accounts cannot sign in. Five failed attempts locks the account for 15 minutes.</p>
         <div class="demo-roles">
-          <p>Prototype — enter a demo role</p>
+          <p>Prototype · enter a demo role</p>
           <div class="demo-grid">
             <button onclick="loginAs('STUDENT')">🎓 Student<small>Jerome Santos · BSIT 3A</small></button>
             <button onclick="loginAs('FACULTY')">🧑‍🏫 Faculty<small>Engr. Maria Reyes</small></button>
@@ -697,7 +818,7 @@ route('/forgot-password', () => {
   <div class="login-main" style="min-height:100vh">
     <div class="login-box">
       <h1>Forgot password</h1>
-      <p>For <b>staff portal accounts</b> only. Students: password issues are handled by the OSAS office — the portal never stores student passwords.</p>
+      <p>For <b>staff portal accounts</b> only. Students: password issues are handled by the OSAS office · the portal never stores student passwords.</p>
       <form onsubmit="event.preventDefault(); toast('If that account exists, a reset link has been emailed.'); nav('/login')">
         <div class="field"><label>Staff email</label><input type="email" placeholder="name@lcc.edu.ph" required></div>
         <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Send reset link</button>
@@ -799,21 +920,24 @@ function shell(inner, opts = {}){
       <div class="nav-items">${itemsHTML}</div>
     </div>`;
   }).join('');
-  const crumbs = opts.crumbs ? `<div class="breadcrumbs">${opts.crumbs}</div>` : '';
-  const head = opts.title ? `${crumbs}<div class="page-head">
-      <div><h1>${opts.title}</h1>${opts.sub ? `<div class="sub">${opts.sub}</div>` : ''}</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">${opts.actions || ''}</div>
+  const head = opts.title ? `<div class="page-head">
+      <div class="head-main">
+        ${opts.crumbs ? `<div class="breadcrumbs">${opts.crumbs}</div>` : ''}
+        <h1>${opts.title}</h1>${opts.sub ? `<div class="sub">${opts.sub}</div>` : ''}
+      </div>
+      ${opts.actions ? `<div class="head-actions">${opts.actions}</div>` : ''}
     </div>` : '';
   app().innerHTML = `
   <div class="shell">
     <aside class="sidebar">
-      <div class="brand"><span class="logo">IT</span><div>LCC IT Portal<div style="font-size:10.5px;font-weight:400;color:#7e93b5">BSIT Department</div></div></div>
+      <div class="brand"><span class="logo">IT</span><div>LCC IT Portal<div style="font-size:10.5px;font-weight:400;color:#7e93b5">BSIT Department</div></div>
+        <button class="side-close" onclick="toggleSidebar()" title="Collapse menu" aria-label="Collapse menu">✕</button></div>
       <div class="nav-scroll">${items}</div>
-      <div class="side-foot">A.Y. ${DB.term.year} · ${DB.term.semester}<br>Phase 1 — QR Attendance</div>
+      <div class="side-foot">A.Y. ${DB.term.year} · ${DB.term.semester}<br>Phase 1 · QR Attendance</div>
     </aside>
     <div class="main">
       <div class="topbar">
-        <button class="icon-btn hamb" onclick="document.body.classList.toggle('side-open')">☰</button>
+        <button class="icon-btn hamb" onclick="toggleSidebar()" title="Toggle menu" aria-label="Toggle menu">☰</button>
         <div class="search"><span class="ic">🔎</span><input placeholder="Search students, classes, records…" onkeydown="if(event.key==='Enter'){toast('Global search is illustrative in this prototype.')}"></div>
         <div style="flex:1"></div>
         <select class="filter-input" style="min-width:0" title="Prototype: switch role" onchange="switchRole(this.value)">
@@ -852,11 +976,18 @@ function studentDashboard(){
   const recent = DB.myAttendance.slice(0,5).map(a => `
     <tr><td><b>${a.subject}</b><div class="small muted">${a.session}</div></td><td>${a.date}</td><td>${a.time}</td><td>${badge(a.status)}</td></tr>`).join('');
   shell(`
-    <div class="banner-warn" style="margin-bottom:18px">⚠️ <div><b>At-risk warning:</b> your attendance in <b>IT304 — Advanced Database Systems</b> is <b>71%</b>, below the 75% threshold. Talk to your instructor or file corrections for disputed records.</div></div>
+    <div class="banner-warn" style="margin-bottom:18px">⚠️ <div><b>At-risk warning:</b> your attendance in <b>IT304 · Advanced Database Systems</b> is <b>71%</b>, below the 75% threshold. Talk to your instructor or file corrections for disputed records.</div></div>
+    ${metricRail([
+      {ic:'🎯', val:'90%', pct:90, lbl:'Overall attendance'},
+      {ic:'⚠️', val:'71%', pct:71, lbl:'IT304 · Adv. Database'},
+      {ic:'✅', val:'128', lbl:'Sessions present', tone:'good'},
+      {ic:'🔥', val:'6', lbl:'Day attendance streak', tone:'brand'},
+      {ic:'✏️', val:'1', lbl:'Pending correction', tone:'warn'}
+    ])}
     <div class="grid cols-3" style="margin-bottom:16px">
       <div class="card card-pad" style="grid-column:span 1">
         <h3>Next class</h3>
-        <div style="font-size:19px;font-weight:800;color:var(--navy-900)">IT303 — Systems Integration</div>
+        <div style="font-size:19px;font-weight:800;color:var(--navy-900)">IT303 · Systems Integration</div>
         <div class="muted" style="margin:4px 0 12px">Room CL-208 · 1:00 – 2:30 PM · Ms. K. Bautista</div>
         <div style="display:flex;align-items:center;gap:12px">
           <span class="badge b-navy" style="font-size:13px;padding:6px 14px">Starts in 00:47:12</span>
@@ -907,15 +1038,15 @@ function facultyDashboard(){
     <tr><td><b>${r.name}</b><div class="small muted mono">${r.id}</div></td><td>${r.subject}</td>
       <td><span class="badge ${r.rate<60?'b-absent':'b-late'}">${r.rate}%</span></td><td>${r.absences}</td></tr>`).join('');
   shell(`
-    <div class="grid cols-4" style="margin-bottom:16px">
-      <div class="card stat"><div class="ic">📚</div><div><div class="val">4</div><div class="lbl">Classes this term</div></div></div>
-      <div class="card stat"><div class="ic">📡</div><div><div class="val">1</div><div class="lbl">Active session now</div></div><span class="trend up">34/38 in</span></div>
-      <div class="card stat"><div class="ic">📈</div><div><div class="val">87%</div><div class="lbl">Weekly class rate</div></div><span class="trend up">▲ 2.4%</span></div>
-      <div class="card stat"><div class="ic">✏️</div><div><div class="val">2</div><div class="lbl">Pending corrections</div></div></div>
-    </div>
+    ${metricRail([
+      {ic:'📚', val:'4', lbl:'Classes this term', tone:'navy'},
+      {ic:'📡', val:'1', lbl:'Active session now', tone:'brand', trend:'34/38 in'},
+      {ic:'📈', val:'87%', pct:87, lbl:'Weekly class rate', trend:'▲ 2.4%'},
+      {ic:'✏️', val:'2', lbl:'Pending corrections', tone:'warn'}
+    ])}
     <div class="grid cols-2" style="margin-bottom:16px">
       <div class="card">
-        <div class="card-pad" style="padding-bottom:6px"><h3 style="margin:0">Today's classes — Mon, Jul 21</h3></div>
+        <div class="card-pad" style="padding-bottom:6px"><h3 style="margin:0">Today's classes · Mon, Jul 21</h3></div>
         <table><thead><tr><th>Class</th><th>Schedule</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       </div>
       <div class="card card-pad">
@@ -949,12 +1080,12 @@ function adminDashboard(){
     <td><b class="small">${l.actor}</b><div class="small muted">${l.detail}</div></td>
     <td><span class="badge b-gray mono" style="font-weight:600">${l.action}</span></td></tr>`).join('');
   shell(`
-    <div class="grid cols-4" style="margin-bottom:16px">
-      <div class="card stat"><div class="ic">📈</div><div><div class="val">91.2%</div><div class="lbl">Today's dept rate</div></div><span class="trend up">▲ 1.8%</span></div>
-      <div class="card stat"><div class="ic">📡</div><div><div class="val">3</div><div class="lbl">Active sessions now</div></div></div>
-      <div class="card stat"><div class="ic">🎓</div><div><div class="val">1,987</div><div class="lbl">Active students</div></div></div>
-      <div class="card stat"><div class="ic">🧑‍🏫</div><div><div class="val">24</div><div class="lbl">Faculty members</div></div></div>
-    </div>
+    ${metricRail([
+      {ic:'📈', val:'91.2%', pct:91.2, lbl:"Today's dept rate", trend:'▲ 1.8%'},
+      {ic:'📡', val:'3', lbl:'Active sessions now', tone:'brand'},
+      {ic:'🎓', val:'1,987', lbl:'Active students', tone:'navy'},
+      {ic:'🧑‍🏫', val:'24', lbl:'Faculty members', tone:'navy'}
+    ])}
     <div class="grid cols-2" style="margin-bottom:16px">
       <div class="card card-pad">
         <h3>Term attendance trend</h3>
@@ -983,7 +1114,7 @@ function adminDashboard(){
           <dt>Schedules</dt><dd>Jul 21, 02:10 · <b>214</b> processed</dd>
           <dt>Calendar</dt><dd>Jul 21, 02:14 · <b>9</b> exceptions</dd>
         </div>
-        <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="toast('Manual OSAS sync queued — you will be notified when it completes.')">↻ Trigger manual sync</button>
+        <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="toast('Manual OSAS sync queued · you will be notified when it completes.')">↻ Trigger manual sync</button>
       </div>
     </div>`,
   { title: S.role === 'SUPER_ADMIN' ? 'System Dashboard' : 'Department Dashboard',
@@ -1015,7 +1146,7 @@ route('/app/schedule', () => {
       if(cell){
         grid += `<div>${`<div class="tt-class ${cell.lab?'lab':''}"><b>${cell.c}</b>${cell.t}<br>${cell.r}${cell.lab?' · Lab':''}</div>`}</div>`;
       } else if(d==='Sat' && si===2){
-        grid += `<div><div class="tt-holiday">⚠️ Jul 30 (Thu): classes suspended — typhoon. Makeup lab Aug 02.</div></div>`;
+        grid += `<div><div class="tt-holiday">⚠️ Jul 30 (Thu): classes suspended · typhoon. Makeup lab Aug 02.</div></div>`;
       } else grid += `<div></div>`;
     });
   });
@@ -1045,7 +1176,7 @@ route('/app/scan', () => {
         <div class="scan-line"></div>
       </div>
       <div style="position:absolute;bottom:26px;left:0;right:0;text-align:center;color:#9db3d4;font-size:13.5px">
-        Point your camera at the QR code on the projector.<br>Codes rotate every 60 seconds — scan promptly.
+        Point your camera at the QR code on the projector.<br>Codes rotate every 60 seconds · scan promptly.
       </div>
     </div>
     <div class="scan-foot">
@@ -1060,9 +1191,9 @@ route('/app/scan', () => {
 });
 function scanOutcome(kind){
   const cfg = {
-    ok:      { bg:'#14532d', ic:'✔️', title:'Attendance recorded', sub:'IT301 — Web Systems & Technologies 2', detail:'Status: <b>PRESENT</b> · 8:04 AM · Room CL-204', btn:'Done' },
+    ok:      { bg:'#14532d', ic:'✔️', title:'Attendance recorded', sub:'IT301 · Web Systems & Technologies 2', detail:'Status: <b>PRESENT</b> · 8:04 AM · Room CL-204', btn:'Done' },
     expired: { bg:'#7c2d12', ic:'⏱️', title:'Code expired', sub:'This QR code has already rotated', detail:'Codes refresh every 60 seconds. Look at the projector and scan the current code.', btn:'Scan again' },
-    dup:     { bg:'#1e3a8a', ic:'ℹ️', title:'Already recorded', sub:'IT301 — Web Systems & Technologies 2', detail:'You were marked <b>PRESENT</b> at 8:04 AM. Only one record per session is allowed.', btn:'OK' },
+    dup:     { bg:'#1e3a8a', ic:'ℹ️', title:'Already recorded', sub:'IT301 · Web Systems & Technologies 2', detail:'You were marked <b>PRESENT</b> at 8:04 AM. Only one record per session is allowed.', btn:'OK' },
   }[kind];
   const el = document.createElement('div');
   el.className = 'scan-result';
@@ -1086,12 +1217,12 @@ route('/app/attendance', () => {
       <td style="text-align:right">${(a.status==='ABSENT'||a.status==='LATE') ? `<button class="btn btn-outline btn-sm" onclick="requestCorrection(${i})">✏️ Request correction</button>` : ''}</td>
     </tr>`).join('');
   shell(`
-    <div class="grid cols-4" style="margin-bottom:16px">
-      <div class="card stat"><div class="ic">✔️</div><div><div class="val">128</div><div class="lbl">Present</div></div></div>
-      <div class="card stat"><div class="ic">⏱️</div><div><div class="val">7</div><div class="lbl">Late</div></div></div>
-      <div class="card stat"><div class="ic">✖️</div><div><div class="val">5</div><div class="lbl">Absent</div></div></div>
-      <div class="card stat"><div class="ic">📄</div><div><div class="val">2</div><div class="lbl">Excused</div></div></div>
-    </div>
+    ${metricRail([
+      {ic:'✔️', val:'128', lbl:'Present', tone:'good'},
+      {ic:'⏱️', val:'7', lbl:'Late', tone:'warn'},
+      {ic:'✖️', val:'5', lbl:'Absent', tone:'bad'},
+      {ic:'📄', val:'2', lbl:'Excused', tone:'brand'}
+    ])}
     <div class="toolbar">
       <input type="search" placeholder="Search records…">
       <select class="filter-input"><option>All subjects</option>${DB.subjects.map(s=>`<option>${s.code}</option>`).join('')}</select>
@@ -1121,7 +1252,7 @@ function requestCorrection(i){
       <input type="file"></div>
     <p class="small muted">Your instructor or the department admin will review this request. You will be notified of the decision.</p>`,
     `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-     <button class="btn btn-primary" onclick="closeModal(); toast('Correction request submitted — status: Pending.')">Submit request</button>`);
+     <button class="btn btn-primary" onclick="closeModal(); toast('Correction request submitted · status: Pending.')">Submit request</button>`);
 }
 
 route('/app/attendance/corrections', () => {
@@ -1235,7 +1366,7 @@ function confirmDialog(title, msg, onYes){
 route('/app/classes', () => {
   const rows = DB.facultyClasses.map(c => `
     <tr>
-      <td><b>${c.code}</b> — ${c.title}<div class="small muted">${c.section}</div></td>
+      <td><b>${c.code}</b> · ${c.title}<div class="small muted">${c.section}</div></td>
       <td class="small">${c.sched}<div class="muted">${c.room}</div></td>
       <td>${c.enrolled}</td>
       <td><span class="badge ${c.rate<85?'b-late':'b-present'}">${c.rate}%</span></td>
@@ -1260,7 +1391,7 @@ function startSession(label){
       <dt>Grace period</dt><dd>15 min (Present) · Late until 30 min</dd>
     </div>
     <div class="field"><label>QR mode</label>
-      <select><option>Dynamic — rotates every 60s (recommended)</option><option>Static — single code (needs admin allowance)</option></select></div>
+      <select><option>Dynamic · rotates every 60s (recommended)</option><option>Static · single code (needs admin allowance)</option></select></div>
     <p class="small muted">Opening the session generates the first QR code and starts accepting scans from enrolled students only.</p>`,
     `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
      <button class="btn btn-primary" onclick="closeModal(); nav('/app/sessions/ses-981/live')">▶ Open session & show QR</button>`);
@@ -1281,12 +1412,12 @@ route('/app/classes/:id', (id) => {
   ].map(s=>`<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]==='OPEN'?badge('OPEN'):'<span class="badge b-gray">Closed</span>'}</td><td>${s[3]}</td>
     <td style="text-align:right">${s[2]==='OPEN'?`<button class="btn btn-primary btn-sm" onclick="nav('/app/sessions/ses-981/live')">Live view</button>`:`<button class="btn btn-outline btn-sm" onclick="toast('Session sheet opened (illustrative).')">Sheet</button>`}</td></tr>`).join('');
   shell(`
-    <div class="grid cols-4" style="margin-bottom:16px">
-      <div class="card stat"><div class="ic">👥</div><div><div class="val">${c.enrolled}</div><div class="lbl">Enrolled</div></div></div>
-      <div class="card stat"><div class="ic">📈</div><div><div class="val">${c.rate}%</div><div class="lbl">Class rate</div></div></div>
-      <div class="card stat"><div class="ic">🗓️</div><div><div class="val">22</div><div class="lbl">Sessions held</div></div></div>
-      <div class="card stat"><div class="ic">⚠️</div><div><div class="val">2</div><div class="lbl">At-risk students</div></div></div>
-    </div>
+    ${metricRail([
+      {ic:'👥', val:`${c.enrolled}`, lbl:'Enrolled', tone:'navy'},
+      {ic:'📈', val:`${c.rate}%`, pct:c.rate, lbl:'Class rate'},
+      {ic:'🗓️', val:'22', lbl:'Sessions held', tone:'navy'},
+      {ic:'⚠️', val:'2', lbl:'At-risk students', tone:'warn'}
+    ])}
     <div class="grid cols-2">
       <div class="card">
         <div class="card-pad" style="padding-bottom:6px;display:flex;justify-content:space-between;align-items:center">
@@ -1300,7 +1431,7 @@ route('/app/classes/:id', (id) => {
         <table><thead><tr><th>Date</th><th>Opened</th><th>Status</th><th>Present</th><th></th></tr></thead><tbody>${sessions}</tbody></table>
       </div>
     </div>`,
-  { title:`${c.code} — ${c.title}`, sub:`${c.section} · ${c.sched} · ${c.room}`,
+  { title:`${c.code} · ${c.title}`, sub:`${c.section} · ${c.sched} · ${c.room}`,
     crumbs:`<a href="#/app/dashboard">Home</a> / <a href="#/app/classes">Classes</a> / ${c.code} ${c.section}`,
     actions:`<button class="btn btn-primary" onclick="startSession('${c.code} · ${c.section}')">▶ Start session</button>` });
 });
@@ -1329,7 +1460,7 @@ route('/app/sessions/:id/live', () => {
   app().innerHTML = `
   <div class="projector">
     <div class="proj-top">
-      <div class="brand" style="font-size:15px"><span class="logo" style="width:32px;height:32px;font-size:14px">IT</span> LCC IT Portal — Live Session</div>
+      <div class="brand" style="font-size:15px"><span class="logo" style="width:32px;height:32px;font-size:14px">IT</span> LCC IT Portal · Live Session</div>
       <div style="display:flex;gap:10px;align-items:center">
         <span class="badge b-open" style="font-size:12px">● OPEN · Dynamic QR</span>
         <button class="btn btn-danger btn-sm" onclick="closeSessionDialog()">■ Close session</button>
@@ -1338,7 +1469,7 @@ route('/app/sessions/:id/live', () => {
     </div>
     <div class="proj-body">
       <div class="proj-qr">
-        <div style="font-size:clamp(19px,2.4vw,27px);font-weight:800;margin-bottom:6px">IT301 — Web Systems &amp; Technologies 2</div>
+        <div style="font-size:clamp(19px,2.4vw,27px);font-weight:800;margin-bottom:6px">IT301 · Web Systems &amp; Technologies 2</div>
         <div style="color:#9db3d4;margin-bottom:22px">BSIT-3A · Room CL-204 · 8:00–9:30 AM · Engr. M. Reyes</div>
         <div class="qr-shell">${qrBlock('live-qr', 250).replace('class="qr-box"','style="display:inline-block"')}</div>
         <div class="proj-meta">
@@ -1373,21 +1504,21 @@ route('/app/sessions/:id/live', () => {
   }, 7000));
 });
 function closeSessionDialog(){
-  modal('Close session — absents preview', `
+  modal('Close session · absents preview', `
     <p style="margin-bottom:14px">Closing this session will automatically mark the remaining students <b>Absent</b>. This can later be changed via override or correction.</p>
     <div class="table-wrap" style="box-shadow:none;max-height:220px;overflow:auto">
     <table><thead><tr><th>Will be marked absent</th><th>ID</th></tr></thead><tbody>
       ${DB.roster.slice(2,8).map(r=>`<tr><td>${r[0]}</td><td class="mono small">${r[1]}</td></tr>`).join('')}
     </tbody></table></div>`,
     `<button class="btn btn-ghost" onclick="closeModal()">Keep open</button>
-     <button class="btn btn-danger" onclick="closeModal(); toast('Session closed — 28 present, 6 late, 4 absent.'); nav('/app/dashboard')">■ Close session</button>`);
+     <button class="btn btn-danger" onclick="closeModal(); toast('Session closed · 28 present, 6 late, 4 absent.'); nav('/app/dashboard')">■ Close session</button>`);
 }
 
 route('/app/attendance/records', () => {
   const recs = [
     ['Jul 21','IT301 · BSIT-3A','Abad, Kristine M.','8:00 AM','PRESENT','Scan'],
     ['Jul 21','IT301 · BSIT-3A','Javier, Trisha D.','8:17 AM','LATE','Scan'],
-    ['Jul 21','IT301 · BSIT-3A','Cruz, Danilo S.','—','ABSENT','Auto'],
+    ['Jul 21','IT301 · BSIT-3A','Cruz, Danilo S.','–','ABSENT','Auto'],
     ['Jul 18','IT304 · BSIT-3A','Lim, Kevin O.','10:31 AM','PRESENT','Override'],
     ['Jul 18','IT304 · BSIT-3A','Hernandez, Ana L.','10:02 AM','PRESENT','Scan'],
     ['Jul 18','IT301 · BSIT-3B','Estrada, Paulo V.','9:31 AM','PRESENT','Manual'],
@@ -1421,16 +1552,16 @@ function overrideDialog(student, cls, cur){
     </div>
     <div class="field"><label>New status</label>
       <select><option>Present</option><option>Late</option><option>Absent</option><option>Excused</option></select></div>
-    <div class="field"><label>Reason (required — recorded in the audit log)</label>
+    <div class="field"><label>Reason (required · recorded in the audit log)</label>
       <textarea rows="3" placeholder="e.g. Scanner failed; student verified in classroom"></textarea></div>`,
     `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-     <button class="btn btn-primary" onclick="closeModal(); toast('Record overridden — change written to the audit log.')">Apply override</button>`);
+     <button class="btn btn-primary" onclick="closeModal(); toast('Record overridden · change written to the audit log.')">Apply override</button>`);
 }
 function manualEntryDialog(){
   modal('Manual attendance entry', `
     <p class="small muted" style="margin-bottom:14px">Fallback for students with technical issues (broken camera, dead battery). Entries are tagged <b>FACULTY_MANUAL</b> and audited.</p>
     <div class="field"><label>Session</label><select><option>IT301 · BSIT-3A · Jul 21 (Open)</option></select></div>
-    <div class="field"><label>Student</label><select>${DB.roster.map(r=>`<option>${r[0]} — ${r[1]}</option>`).join('')}</select></div>
+    <div class="field"><label>Student</label><select>${DB.roster.map(r=>`<option>${r[0]} · ${r[1]}</option>`).join('')}</select></div>
     <div class="field"><label>Status</label><select><option>Present</option><option>Late</option></select></div>
     <div class="field"><label>Reason (required)</label><input placeholder="e.g. Phone camera not working"></div>`,
     `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
@@ -1439,8 +1570,8 @@ function manualEntryDialog(){
 
 function facultyCorrections(){
   const rows = [
-    ['COR-0142','Santos, Jerome D.','IT304 · Jul 20','ABSENT','EXCUSED','Medical appointment — clinic slip attached','📎 clinic-slip.jpg'],
-    ['COR-0144','Flores, Janna C.','IT301 · Jul 18','LATE','PRESENT','Queue at the door was long, scanned 3 mins late','—'],
+    ['COR-0142','Santos, Jerome D.','IT304 · Jul 20','ABSENT','EXCUSED','Medical appointment · clinic slip attached','📎 clinic-slip.jpg'],
+    ['COR-0144','Flores, Janna C.','IT301 · Jul 18','LATE','PRESENT','Queue at the door was long, scanned 3 mins late','–'],
   ].map(c => `
     <tr><td class="mono small">${c[0]}</td>
       <td><b>${c[1]}</b><div class="small muted">${c[2]}</div></td>
@@ -1461,7 +1592,7 @@ function reviewDialog(ref, action){
     <div class="field"><label>Review note ${action==='reject'?'(required)':'(optional)'}</label>
       <textarea rows="3" placeholder="Visible to the student…"></textarea></div>`,
     `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-     <button class="btn ${action==='approve'?'btn-primary':'btn-danger'}" onclick="closeModal(); toast('Correction ${ref} ${action}d — student notified.')">${action==='approve'?'✔ Approve':'✖ Reject'}</button>`);
+     <button class="btn ${action==='approve'?'btn-primary':'btn-danger'}" onclick="closeModal(); toast('Correction ${ref} ${action}d · student notified.')">${action==='approve'?'✔ Approve':'✖ Reject'}</button>`);
 }
 
 route('/app/reports', () => {
@@ -1480,14 +1611,14 @@ route('/app/reports', () => {
         <div style="border-top:1px dashed var(--line);margin:16px 0 12px"></div>
         <div class="small muted" style="margin-bottom:10px">Export</div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-outline btn-sm" onclick="toast('CSV export started — you will be notified when ready.')">CSV</button>
+          <button class="btn btn-outline btn-sm" onclick="toast('CSV export started · you will be notified when ready.')">CSV</button>
           <button class="btn btn-outline btn-sm" onclick="toast('Excel (XLSX) export started.')">Excel</button>
           <button class="btn btn-outline btn-sm" onclick="toast('PDF export started.')">PDF</button>
         </div>
       </div>
       <div style="display:grid;gap:16px">
         <div class="card card-pad">
-          <h3>Preview — Weekly summary${isFaculty ? ' · IT301 BSIT-3A' : ' · Department'}</h3>
+          <h3>Preview · Weekly summary${isFaculty ? ' · IT301 BSIT-3A' : ' · Department'}</h3>
           ${lineChart([91,88,93,90,94], 560, 140)}
           <div class="legend"><span><i style="background:#19407c"></i>Attendance rate, Jul 14 – Jul 18</span></div>
         </div>
@@ -1501,7 +1632,7 @@ route('/app/reports', () => {
       </div>
     </div>`,
   { title: isFaculty ? 'Reports' : 'Department Reports',
-    sub:'Daily · weekly · monthly · semester — exportable as CSV, Excel, PDF',
+    sub:'Daily · weekly · monthly · semester · exportable as CSV, Excel, PDF',
     crumbs:'<a href="#/app/dashboard">Home</a> / Reports' });
 });
 
@@ -1519,11 +1650,11 @@ route('/app/monitoring', () => {
       <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="nav('/app/sessions/${s.id}/live')">Drill in</button></td></tr>`;
   }).join('');
   shell(`
-    <div class="grid cols-3" style="margin-bottom:16px">
-      <div class="card stat"><div class="ic">📡</div><div><div class="val">3</div><div class="lbl">Open sessions</div></div></div>
-      <div class="card stat"><div class="ic">🎓</div><div><div class="val">112</div><div class="lbl">Students scanned in (today)</div></div></div>
-      <div class="card stat"><div class="ic">📈</div><div><div class="val">91.2%</div><div class="lbl">Today's dept rate</div></div></div>
-    </div>
+    ${metricRail([
+      {ic:'📡', val:'3', lbl:'Open sessions', tone:'brand'},
+      {ic:'🎓', val:'112', lbl:'Students scanned in (today)', tone:'navy'},
+      {ic:'📈', val:'91.2%', pct:91.2, lbl:"Today's dept rate"}
+    ])}
     <div class="card">
       <div class="card-pad" style="padding-bottom:6px;display:flex;justify-content:space-between;align-items:center">
         <h3 style="margin:0">Open sessions right now</h3><span class="small muted">Auto-refreshing · Socket.IO live</span></div>
@@ -1533,7 +1664,7 @@ route('/app/monitoring', () => {
 });
 
 /* =====================================================================
-   EVENTS (orientations, fairs, seminars) — with attendance monitoring
+   EVENTS (orientations, fairs, seminars) · with attendance monitoring
    ===================================================================== */
 route('/app/events', () => {
   const isStudent = S.role === 'STUDENT';
@@ -1577,19 +1708,19 @@ route('/app/events', () => {
   }).join('');
 
   shell(`
-    <div class="grid cols-4" style="margin-bottom:18px">
-      <div class="card stat"><div class="ic">🗓️</div><div><div class="val">${upcoming}</div><div class="lbl">Upcoming events</div></div></div>
-      <div class="card stat"><div class="ic">📡</div><div><div class="val">${live}</div><div class="lbl">Live check-in now</div></div>${live?'<span class="trend up">● open</span>':''}</div>
-      <div class="card stat"><div class="ic">✅</div><div><div class="val">${checkedToday}</div><div class="lbl">Total checked in</div></div></div>
-      <div class="card stat"><div class="ic">📈</div><div><div class="val">${avgTurnout}%</div><div class="lbl">Avg turnout (past)</div></div></div>
-    </div>
+    ${metricRail([
+      {ic:'🗓️', val:`${upcoming}`, lbl:'Upcoming events', tone:'navy'},
+      {ic:'📡', val:`${live}`, lbl:'Live check-in now', tone:'brand', trend: live ? '● open' : ''},
+      {ic:'✅', val:`${checkedToday}`, lbl:'Total checked in', tone:'good'},
+      {ic:'📈', val:`${avgTurnout}%`, pct:avgTurnout, lbl:'Avg turnout (past)'}
+    ])}
     <div class="toolbar">
       <input type="search" placeholder="Search events…">
       <select class="filter-input"><option>All types</option><option>Orientation</option><option>Fair</option><option>Seminar</option><option>Assembly</option></select>
       <select class="filter-input"><option>All statuses</option><option>Live</option><option>Scheduled</option><option>Closed</option></select>
     </div>
     <div class="grid cols-2">${cards}</div>`,
-  { title:'Events', sub:'Orientations, fairs & seminars — QR check-in with live attendance monitoring',
+  { title:'Events', sub:'Orientations, fairs & seminars · QR check-in with live attendance monitoring',
     crumbs:'<a href="#/app/dashboard">Home</a> / Events',
     actions: isStudent ? '' : `<button class="btn btn-outline" onclick="toast('Attendee list exported (illustrative).')">⬇ Export</button>
              <button class="btn btn-primary" onclick="newEventDialog()">＋ New event</button>` });
@@ -1687,7 +1818,7 @@ route('/app/events/:id', (id) => {
       ${!isStudent ? (live
         ? `<button class="btn btn-danger" onclick="confirmDialog('Close event check-in?','No further scans will be accepted after closing. Attendance is finalized and audited.',()=>{ nav('/app/events'); toast('Event check-in closed.'); })">■ Close check-in</button>`
         : e.status==='SCHEDULED'
-          ? `<button class="btn btn-primary" onclick="toast('Check-in opened — QR is now live at the venue.')">▶ Open check-in</button>`
+          ? `<button class="btn btn-primary" onclick="toast('Check-in opened · QR is now live at the venue.')">▶ Open check-in</button>`
           : `<button class="btn btn-outline" onclick="toast('Attendance report exported (illustrative).')">📊 Export report</button>`) : ''}
     </div>
     ${body}`,
@@ -1720,16 +1851,16 @@ route('/app/students', () => {
     </div>`,
   { title:'Students', sub:'Directory · profiles sync nightly from OSAS', crumbs:'<a href="#/app/dashboard">Home</a> / Students',
     actions:`<button class="btn btn-outline" onclick="csvImportDialog()">⬆ CSV import</button>
-             <button class="btn btn-primary" onclick="toast('Manual student creation is for edge cases — most students arrive via OSAS sync.')">＋ Add student</button>` });
+             <button class="btn btn-primary" onclick="toast('Manual student creation is for edge cases · most students arrive via OSAS sync.')">＋ Add student</button>` });
 });
 function csvImportDialog(){
-  modal('CSV import — validation preview', `
+  modal('CSV import · validation preview', `
     <p class="small muted" style="margin-bottom:14px">For edge cases not covered by OSAS sync. Each row is validated before anything is written.</p>
     <div class="table-wrap" style="box-shadow:none">
     <table><thead><tr><th>Row</th><th>Student</th><th>Result</th></tr></thead><tbody>
       <tr><td>1</td><td class="small">2024-20991 · Ramos, Ella</td><td><span class="badge b-present">Valid</span></td></tr>
       <tr><td>2</td><td class="small">2024-21002 · Uy, Marcus</td><td><span class="badge b-present">Valid</span></td></tr>
-      <tr><td>3</td><td class="small">2023-11482 · Santos, Jerome</td><td><span class="badge b-absent">Duplicate — skipped</span></td></tr>
+      <tr><td>3</td><td class="small">2023-11482 · Santos, Jerome</td><td><span class="badge b-absent">Duplicate · skipped</span></td></tr>
       <tr><td>4</td><td class="small">2024-2101 · (bad ID format)</td><td><span class="badge b-late">Fix ID format</span></td></tr>
     </tbody></table></div>`,
     `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
@@ -1754,7 +1885,7 @@ route('/app/students/:id', (id) => {
             <dt>Program</dt><dd>BS Information Technology</dd>
             <dt>Year</dt><dd>${s.yr}rd Year</dd>
             <dt>Section</dt><dd>BSIT-${s.sec}</dd>
-            <dt>Adviser</dt><dd>Engr. M. Reyes <button class="btn btn-ghost btn-sm" onclick="toast('Adviser assignment is a local field — editable.')">edit</button></dd>
+            <dt>Adviser</dt><dd>Engr. M. Reyes <button class="btn btn-ghost btn-sm" onclick="toast('Adviser assignment is a local field · editable.')">edit</button></dd>
           </div>
         </div>
       </div>
@@ -1852,7 +1983,7 @@ route('/app/enrollments', () => {
       <div class="card card-pad" style="align-self:start">
         <h3>Bulk enroll</h3>
         <div class="field"><label>Offering</label><select><option>IT301 · BSIT-3A · Engr. Reyes</option><option>IT304 · BSIT-3A · Engr. Reyes</option></select></div>
-        <div class="field"><label>Source</label><select><option>Whole section — BSIT-3A (38 students)</option><option>Paste ID list…</option><option>CSV upload…</option></select></div>
+        <div class="field"><label>Source</label><select><option>Whole section · BSIT-3A (38 students)</option><option>Paste ID list…</option><option>CSV upload…</option></select></div>
         <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="toast('38 students enrolled in IT301 · BSIT-3A.')">Enroll section</button>
       </div>
       <div class="table-wrap" style="align-self:start">
@@ -1878,7 +2009,7 @@ route('/app/calendar', () => {
     <div class="table-wrap">
       <table><thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Source</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`,
-  { title:'Academic Calendar', sub:'Exceptions drive session generation — holidays, suspensions, makeup classes, events',
+  { title:'Academic Calendar', sub:'Exceptions drive session generation · holidays, suspensions, makeup classes, events',
     crumbs:'<a href="#/app/dashboard">Home</a> / Calendar',
     actions:`<button class="btn btn-outline" onclick="toast('Calendar sync from OSAS queued.')">↻ Sync from OSAS</button>
              <button class="btn btn-primary" onclick="toast('New exception form (illustrative).')">＋ Add exception</button>` });
@@ -1913,7 +2044,7 @@ route('/app/users', () => {
     ['Carlo T. Dizon','c.dizon@lcc.edu.ph','DEPT_ADMIN','Local','Active','2h ago'],
     ['Maria L. Reyes','m.reyes@lcc.edu.ph','FACULTY','Local','Active','10m ago'],
     ['Arnel P. Villanueva','a.villanueva@lcc.edu.ph','FACULTY','Local','Active','1h ago'],
-    ['Jerome D. Santos','—','STUDENT','OSAS','Active','4m ago'],
+    ['Jerome D. Santos','–','STUDENT','OSAS','Active','4m ago'],
     ['Patricia M. Cruz','p.cruz@lcc.edu.ph','FACULTY','Local','Locked','3d ago'],
   ].map(u => `
     <tr><td><b>${u[0]}</b><div class="small muted">${u[1]}</div></td>
@@ -1935,7 +2066,7 @@ route('/app/users', () => {
       <table><thead><tr><th>Account</th><th>Role</th><th>Auth</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`,
   { title:'User Management', sub:'All portal accounts · role changes are audited', crumbs:'<a href="#/app/dashboard">Home</a> / Users',
-    actions:`<button class="btn btn-primary" onclick="toast('Create-account wizard (illustrative). Students never get local accounts — they authenticate via OSAS.')">＋ Create account</button>` });
+    actions:`<button class="btn btn-primary" onclick="toast('Create-account wizard (illustrative). Students never get local accounts · they authenticate via OSAS.')">＋ Create account</button>` });
 });
 
 route('/app/terms', () => {
@@ -1965,7 +2096,7 @@ const SETTINGS_SECTIONS = [
   ['modules',      '🧩', 'Modules'],
   ['maintenance',  '🛠️', 'Maintenance'],
 ];
-function settingsSave(area){ toast(area + ' settings saved — change recorded in the audit log.'); }
+function settingsSave(area){ toast(area + ' settings saved · change recorded in the audit log.'); }
 function setRow(title, desc, control){
   return `<div class="set-row"><div class="desc"><b>${title}</b><span class="small">${desc}</span></div>${control}</div>`;
 }
@@ -1998,8 +2129,8 @@ function settingsBody(tab){
       <h3>Attendance rules</h3>
       <p class="small muted" style="margin-bottom:12px">System-wide defaults. Individual class offerings may override grace / cutoff per session.</p>
       <div class="grid cols-2">
-        <div class="field"><label>Grace period — marked Present (min)</label><input value="15"></div>
-        <div class="field"><label>Late cutoff — marked Absent after (min)</label><input value="30"></div>
+        <div class="field"><label>Grace period · marked Present (min)</label><input value="15"></div>
+        <div class="field"><label>Late cutoff · marked Absent after (min)</label><input value="30"></div>
         <div class="field"><label>At-risk threshold (%)</label><input value="75"></div>
         <div class="field"><label>Duplicate-scan lockout (sec)</label><input value="90"></div>
       </div>
@@ -2081,7 +2212,7 @@ function settingsBody(tab){
         <div class="field"><label>Session timeout (min)</label><input value="60"></div>
         <div class="field"><label>Password min length (staff)</label><input value="10"></div>
       </div>
-      ${setRow('Require OSAS SSO for students','Students never get local passwords — OSAS credentials only.', toggleCtl(true))}
+      ${setRow('Require OSAS SSO for students','Students never get local passwords · OSAS credentials only.', toggleCtl(true))}
       ${setRow('Two-factor for admin accounts','Enforce 2FA for Dept Admin and Super Admin sign-in.', toggleCtl(false))}
       <button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="settingsSave('Security')">Save changes</button>
     </div>
@@ -2104,7 +2235,7 @@ function settingsBody(tab){
       <div class="set-row">
         <div class="desc"><b>${f[1]} <span class="badge b-gray" style="margin-left:4px">${f[3]}</span></b>
           <span class="small mono">modules.${f[0]}.enabled</span></div>
-        <span class="switch"><input type="checkbox" ${f[2]?'checked':''} onchange="toast('Feature flag saved — disabled modules 404 their routes and hide their menus.')"><span class="sl"></span></span>
+        <span class="switch"><input type="checkbox" ${f[2]?'checked':''} onchange="toast('Feature flag saved · disabled modules 404 their routes and hide their menus.')"><span class="sl"></span></span>
       </div>`).join('');
     return `
     <div class="card card-pad">
@@ -2118,10 +2249,10 @@ function settingsBody(tab){
     <div class="card card-pad">
       <h3>System</h3>
       ${setRow('Maintenance mode','Show a maintenance page to non-admins during upgrades.', toggleCtl(false))}
-      <div class="field" style="margin-top:12px"><label>Data retention — closed sessions</label>
+      <div class="field" style="margin-top:12px"><label>Data retention · closed sessions</label>
         <select><option>Keep indefinitely</option><option>Archive after 2 years</option></select></div>
       <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-        <button class="btn btn-outline btn-sm" onclick="toast('Full backup queued — you will be notified when complete.')">💾 Run backup now</button>
+        <button class="btn btn-outline btn-sm" onclick="toast('Full backup queued · you will be notified when complete.')">💾 Run backup now</button>
         <button class="btn btn-outline btn-sm" onclick="toast('Application cache cleared.')">🧹 Clear cache</button>
       </div>
     </div>
@@ -2175,12 +2306,12 @@ route('/app/audit-logs', () => {
       <table><thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Detail</th><th>Entity</th></tr></thead><tbody>${rows}</tbody></table>
       <div class="pagination"><span>1–6 of 8,412</span><button class="active">1</button><button>2</button><button>3</button><button>…</button></div>
     </div>`,
-  { title:'Audit Logs', sub:'Every auth event, override, deletion, settings change, and sync — with actor, IP, before/after',
+  { title:'Audit Logs', sub:'Every auth event, override, deletion, settings change, and sync · with actor, IP, before/after',
     crumbs:'<a href="#/app/dashboard">Home</a> / Audit logs' });
 });
 function auditDetail(i){
   const l = DB.auditLogs[i];
-  modal(`Audit entry — ${l.action}`, `
+  modal(`Audit entry · ${l.action}`, `
     <div class="kv" style="margin-bottom:16px">
       <dt>Timestamp</dt><dd>${l.at} (Asia/Manila)</dd>
       <dt>Actor</dt><dd><b>${l.actor}</b> · <span class="mono small">10.10.4.121</span></dd>
