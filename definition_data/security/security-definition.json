@@ -1,0 +1,81 @@
+{
+  "$schema_note": "Security definition — authentication, authorization, QR anti-fraud, OWASP mapping, auditing, and policies",
+  "authentication": {
+    "students": {
+      "provider": "OSAS API single sign-on — university credentials verified server-to-server; portal never stores student passwords",
+      "eligibility_gate": "OSAS status must be active/current; alumni and inactive students rejected at login (BR-13)",
+      "session_issuance": "On success: access JWT (15 min) + rotating refresh token (7 days)"
+    },
+    "staff": {
+      "provider": "Local accounts, argon2id password hashing (memory 64MB, iterations 3, parallelism 4)",
+      "password_policy": { "min_length": 8, "require": ["uppercase", "lowercase", "number"], "prevent_reuse_last": 3, "first_login_change": true },
+      "lockout": "5 failed attempts → 15 min lock (persisted, not in-memory); all attempts written to login logs",
+      "reset": "Single-use emailed token, 30 min expiry, invalidated on use or new request",
+      "otp_2fa": "Optional email OTP for SUPER_ADMIN / DEPT_ADMIN (settings-controlled)"
+    },
+    "tokens": {
+      "access": "JWT HS256 (15 min), kept in browser memory only — never localStorage",
+      "refresh": "Random 256-bit value, SHA-256 hash stored, httpOnly + Secure + SameSite=Lax cookie scoped to /api/v1/auth",
+      "rotation": "Every refresh issues a new token and revokes the old; reuse of a revoked token revokes the entire token family (theft detection)",
+      "revocation_triggers": ["logout", "password change", "admin deactivation", "device session revoke"],
+      "device_tracking": "Each refresh token stores device/user-agent + IP; users can list and revoke their device sessions"
+    }
+  },
+  "authorization": {
+    "model": "RBAC (5 roles) + resource-ownership checks",
+    "enforcement_chain": "authenticate → authorize(roles) → service-level ownership guard (faculty↔assigned offering, student↔self)",
+    "principles": ["Deny by default", "Backend is sole authority (frontend guards are UX only)", "No self-escalation — role changes are Super Admin actions, audited"]
+  },
+  "qr_anti_fraud": {
+    "threats_and_mitigations": {
+      "screenshot_sharing": "Dynamic QR regenerates every 60 seconds; payload is time-limited — shared screenshots expire within the minute and fail server validation",
+      "replay": "Single-use per student per session (DB unique constraint); token window check (±1 of 60s)",
+      "payload_tampering": "AES-256-GCM encryption + auth tag — clients cannot read or forge payloads; keys server-side only",
+      "proxy_scanning_other_class": "Enrollment check — only students enrolled in the offering can be recorded",
+      "clock_tampering": "Server timestamps are authoritative; client time ignored",
+      "brute_force_scanning": "Rate limit 10 scans/min per user; invalid payloads logged",
+      "session_hijack": "QR issuance endpoint restricted to the owning faculty; session secret never leaves the server"
+    },
+    "static_qr_exception": "Static mode is per-session, requires admin allowance in settings, and is flagged reduced-security in data and reports (BR-16)",
+    "accepted_limitations": "No GPS or classroom verification by design (SystemDefinition4); physical presence enforcement relies on QR rotation speed + faculty supervision"
+  },
+  "owasp_top10_mapping": {
+    "A01_broken_access_control": "RBAC middleware + ownership guards + deny-by-default; tested per role in integration suite",
+    "A02_cryptographic_failures": "TLS 1.2+; argon2id; AES-256-GCM QR payloads; SHA-256 refresh hashes; no sensitive data in JWT claims",
+    "A03_injection": "Prisma parameterized queries only (no raw SQL); zod validation with unknown-key stripping; React auto-escaping for XSS",
+    "A04_insecure_design": "Threat-modeled QR flow (above); business rules BR-01…BR-16 enforced server-side",
+    "A05_security_misconfiguration": "helmet headers + strict CSP; CORS allowlist; prod configs in env vars; debug routes disabled in production",
+    "A06_vulnerable_components": "npm audit + Dependabot in CI; lockfile pinning; minimal dependency footprint",
+    "A07_auth_failures": "Lockout, rotation, reuse detection, device tracking, OSAS eligibility gate",
+    "A08_integrity_failures": "GCM auth tags on QR payloads; signed CI artifacts; append-only audit logs",
+    "A09_logging_failures": "Structured pino logs with request IDs; login/audit/attendance/sync logs; alerts on anomaries (lockout spikes, sync failures)",
+    "A10_ssrf": "Outbound HTTP restricted to configured OSAS/SMTP/storage hosts; no user-supplied URLs fetched"
+  },
+  "api_protection": {
+    "headers": "helmet defaults; HSTS (prod); CSP allowing only self + data: images",
+    "cors": "Explicit origin allowlist per environment; credentials enabled only for the SPA origin",
+    "rate_limiting": { "global": "300/15min/IP", "login": "10/15min/IP", "scan": "10/min/user", "exports": "10/hour/user" },
+    "csrf": "SameSite=Lax cookie + Bearer-header requirement on state-changing routes (cookie alone never authorizes a mutation)",
+    "uploads": "MIME + magic-byte validation; images ≤2MB (jpg/png/webp), attachments ≤5MB (pdf/jpg/png); randomized names; served from isolated path with no execute permissions",
+    "osas_channel": "Server-to-server only over TLS; API credentials in env vars; responses schema-validated (zod) before persistence; timeouts + circuit breaker with admin alerting"
+  },
+  "audit_and_logging": {
+    "audit_logs": "Every mutating action: actor, action (entity.verb), entity id, before/after jsonb, IP — append-only",
+    "login_logs": "All attempts (success/failure/lockout) with identifier, IP, user-agent",
+    "attendance_logs": "Scans (valid + rejected with rejection reason), overrides, manual entries, corrections",
+    "sync_logs": "OSAS sync runs with counts and error details",
+    "review": "Admin dashboard surfaces recent audit events; logs retained 5 academic years"
+  },
+  "data_protection": {
+    "in_transit": "HTTPS everywhere (Let's Encrypt, TLS 1.2+)",
+    "at_rest": "Provider disk encryption; password hashes (argon2id); token hashes (SHA-256); QR secrets bytea, never serialized",
+    "privacy": "Student data limited to academic operations; profile photos from OSAS displayed only to authorized roles; no data sold or shared externally; deletion requests honored per institutional policy",
+    "backups": "Encrypted daily dumps, 30-day retention + weekly offsite; restore drills each semester (see ../maintenance)"
+  },
+  "secure_development": {
+    "secrets": ".env per environment, never committed; .env.example documents keys; production secrets in host secret store",
+    "ci_checks": ["eslint security rules", "typecheck", "npm audit (fail on high)", "dependency review on PRs"],
+    "code_review": "All changes via PR review; security-sensitive paths (auth, qr, attendance) require owner review",
+    "incident_response": "See ../maintenance/maintenance-definition.json → incident_response"
+  }
+}

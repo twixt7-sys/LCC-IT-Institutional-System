@@ -1,0 +1,66 @@
+{
+  "$schema_note": "Role definitions and full permission matrix. Legend: C=Create, R=Read, U=Update, D=Delete(soft), X=Execute/Special, own=own records only, dept=department scope",
+  "roles": [
+    {
+      "key": "SUPER_ADMIN",
+      "name": "Super Admin",
+      "account_source": "Local (provisioned at deployment)",
+      "description": "System owner with unrestricted access, including settings, users, terms, module flags, and audit logs.",
+      "hard_rules": ["Only role allowed to hard-delete (audited)", "Only role that edits system settings and module flags"]
+    },
+    {
+      "key": "DEPT_ADMIN",
+      "name": "Department Admin",
+      "account_source": "Local (created by Super Admin)",
+      "description": "Manages department data and operations: students, faculty, subjects, sections, offerings, schedules, enrollments, correction approvals, and department reports.",
+      "hard_rules": ["Cannot manage admin accounts", "Cannot change system settings", "Scope limited to the IT department"]
+    },
+    {
+      "key": "FACULTY",
+      "name": "Faculty",
+      "account_source": "Local (created by admins)",
+      "description": "Operates class sessions and attendance for assigned offerings only.",
+      "hard_rules": ["Actions restricted to offerings assigned to them in the active term", "Overrides require a reason (audited)", "Can mark manual attendance for students with technical issues"]
+    },
+    {
+      "key": "STUDENT",
+      "name": "Student",
+      "account_source": "OSAS API (SSO with university credentials; no local registration)",
+      "description": "Scans attendance, views own records, files correction requests.",
+      "hard_rules": ["Login requires active/current OSAS status — alumni and inactive students rejected", "Can only ever read own data", "Cannot modify any attendance record directly"]
+    },
+    {
+      "key": "GUEST",
+      "name": "Guest",
+      "account_source": "None (unauthenticated)",
+      "description": "Public landing page and login only."
+    }
+  ],
+  "permission_matrix": {
+    "users_accounts":            { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "CRU (non-admin)", "FACULTY": "RU (own profile)", "STUDENT": "R (own, OSAS-synced)", "GUEST": "-" },
+    "students":                  { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "CRUD", "FACULTY": "R (own classes)", "STUDENT": "R (self)", "GUEST": "-" },
+    "faculty":                   { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "CRUD", "FACULTY": "RU (own profile)", "STUDENT": "-", "GUEST": "-" },
+    "subjects":                  { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "CRUD", "FACULTY": "R (assigned)", "STUDENT": "R (enrolled)", "GUEST": "-" },
+    "sections":                  { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "CRUD", "FACULTY": "R", "STUDENT": "R (own)", "GUEST": "-" },
+    "class_offerings":           { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "CRUD", "FACULTY": "R (assigned)", "STUDENT": "R (enrolled)", "GUEST": "-" },
+    "schedules":                 { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "CRUD + X (OSAS sync)", "FACULTY": "R (assigned)", "STUDENT": "R (own)", "GUEST": "-" },
+    "calendar_exceptions":       { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "CRUD", "FACULTY": "R", "STUDENT": "R", "GUEST": "-" },
+    "enrollments":               { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "CRUD", "FACULTY": "R (own classes)", "STUDENT": "R (own)", "GUEST": "-" },
+    "class_sessions":            { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "R (all)", "FACULTY": "CRUX (own: start/close/QR/static-QR request)", "STUDENT": "R (enrolled)", "GUEST": "-" },
+    "qr_tokens":                 { "SUPER_ADMIN": "X", "DEPT_ADMIN": "-", "FACULTY": "X (own open sessions)", "STUDENT": "X (scan only)", "GUEST": "-" },
+    "attendance_records":        { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "RU (via corrections)", "FACULTY": "RU (own classes, reason required) + C (manual entry)", "STUDENT": "R (own) + X (scan)", "GUEST": "-" },
+    "attendance_corrections":    { "SUPER_ADMIN": "RUX", "DEPT_ADMIN": "RUX (approve/reject)", "FACULTY": "RUX (own classes)", "STUDENT": "CR (own)", "GUEST": "-" },
+    "reports":                   { "SUPER_ADMIN": "RX (all)", "DEPT_ADMIN": "RX (dept)", "FACULTY": "RX (own classes)", "STUDENT": "R (own summary)", "GUEST": "-" },
+    "dashboard":                 { "SUPER_ADMIN": "R (admin)", "DEPT_ADMIN": "R (admin)", "FACULTY": "R (faculty)", "STUDENT": "R (student)", "GUEST": "-" },
+    "notifications":             { "SUPER_ADMIN": "CR (broadcast)", "DEPT_ADMIN": "CR (dept broadcast)", "FACULTY": "R (own)", "STUDENT": "R (own)", "GUEST": "-" },
+    "settings":                  { "SUPER_ADMIN": "RU", "DEPT_ADMIN": "R", "FACULTY": "-", "STUDENT": "-", "GUEST": "-" },
+    "audit_logs":                { "SUPER_ADMIN": "R", "DEPT_ADMIN": "R (dept scope)", "FACULTY": "-", "STUDENT": "-", "GUEST": "-" },
+    "osas_integration":          { "SUPER_ADMIN": "RX (configure + trigger sync)", "DEPT_ADMIN": "RX (trigger sync, view status)", "FACULTY": "-", "STUDENT": "-", "GUEST": "-" },
+    "academic_terms":            { "SUPER_ADMIN": "CRUD", "DEPT_ADMIN": "R", "FACULTY": "R", "STUDENT": "R", "GUEST": "-" }
+  },
+  "enforcement": {
+    "backend": "authenticate → authorize(roles) → ownership guard (service layer verifies faculty↔offering and student↔self) on every protected route; backend is the single source of truth",
+    "frontend": "Route guards + conditional UI mirror the matrix for UX only",
+    "escalation": "No role can grant itself permissions; role changes are Super Admin actions and audited"
+  }
+}

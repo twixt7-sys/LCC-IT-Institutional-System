@@ -1,0 +1,69 @@
+{
+  "$schema_note": "Testing definition — strategy, tooling, coverage targets, and the key scenarios that must always pass",
+  "strategy": "Test pyramid: fast unit tests on business rules, integration tests on API+DB behavior (the attendance guarantees live here), a thin E2E layer on the critical user journeys. QR/attendance logic is the highest-risk area and gets the deepest coverage.",
+  "tooling": {
+    "unit": "Vitest (api services + shared zod schemas + web hooks/utils)",
+    "component": "Vitest + React Testing Library + user-event (web components, forms, guards)",
+    "integration": "Vitest + Supertest against the real Express app with a Postgres service container (Testcontainers locally, service container in CI); OSAS mocked with msw/nock fixtures",
+    "e2e": "Playwright (chromium + mobile viewport) against a full docker compose stack with seeded data",
+    "static": "TypeScript strict, ESLint (typescript-eslint, react-hooks, jsx-a11y), Prettier",
+    "security": "npm audit (fail high) + dependency review in CI",
+    "accessibility": "axe-core assertions in Playwright on key pages",
+    "load_smoke": "k6 script: 100 concurrent scans against one session — p95 < 1s, zero duplicates"
+  },
+  "coverage_targets": {
+    "services_business_rules": "90%+ lines/branches (attendance, qr, auth modules)",
+    "api_integration": "Every endpoint: happy path + authz denial + validation failure",
+    "web_components": "Shared components and all forms; 70%+ overall",
+    "e2e": "The 6 critical journeys below — no percentage goal, but always green"
+  },
+  "critical_test_scenarios": {
+    "attendance_rules": [
+      "Scan within grace → PRESENT; after grace → LATE; never scanned + close → ABSENT (BR-03)",
+      "Duplicate scan same session → 'already recorded', single row persists (BR-01 unique constraint verified under concurrency: 50 parallel scans, one record)",
+      "Scan with expired token window (>±1 of 60s) → TOKEN_EXPIRED_WINDOW",
+      "Scan on closed/cancelled session → SESSION_CLOSED",
+      "Non-enrolled student scan → NOT_ENROLLED",
+      "Scan after cutoff time rejected (BR-14); staff manual entry after cutoff allowed + audited",
+      "Tampered payload (bad auth tag) → rejected and logged",
+      "Static QR session records flagged reduced-security (BR-16)"
+    ],
+    "auth_osas": [
+      "Active OSAS student logs in → profile upserted, tokens issued",
+      "Alumni/inactive OSAS status → 403 STUDENT_INACTIVE, no session (BR-13)",
+      "OSAS timeout → OSAS_UNAVAILABLE, no partial account state",
+      "Staff lockout after 5 failures; unlock after 15 min",
+      "Refresh rotation works; refresh token reuse revokes the whole family",
+      "Role escalation attempts (student calling admin endpoints) → 403 for every admin route (matrix sweep test)"
+    ],
+    "scheduling_calendar": [
+      "Sessions not generated on HOLIDAY/SUSPENSION dates; MAKEUP_CLASS/SPECIAL_EVENT generate extra sessions (BR-15)",
+      "Schedule conflict rejected (same section, faculty, or room overlap)",
+      "OSAS sync upsert preserves local-only fields (adviser) and logs results"
+    ],
+    "corrections_and_overrides": [
+      "Override without reason → VALIDATION_FAILED; with reason → audited with before/after",
+      "Correction approve updates record with marked_by=CORRECTION; reject leaves record untouched; student notified in both cases"
+    ],
+    "reports": [
+      "Rates computed from raw records match hand-computed fixtures (daily/weekly/monthly/semester)",
+      "At-risk detection: exactly 3 consecutive absences triggers; 2 does not (BR-07)",
+      "CSV/XLSX/PDF exports open and contain expected rows"
+    ],
+    "e2e_journeys": [
+      "Student: login (mock OSAS) → dashboard → scan seeded session QR → sees PRESENT confirmation → record visible in My Attendance",
+      "Faculty: login → start session → live QR rotates → simulated scans appear in roster live → close → absents auto-marked → session report correct",
+      "Faculty: manual attendance + override with reason → audit entry visible to admin",
+      "Student files correction → faculty approves → status and notification updated",
+      "Admin: create subject→section→offering→schedule→enroll section → sessions pre-generated next day (clock mocked)",
+      "Admin: run department report and export XLSX"
+    ]
+  },
+  "test_data": {
+    "seeds": "Deterministic factory fixtures (faker with fixed seed): 1 term, 2 courses, 4 sections, 6 subjects, 3 faculty, 60 students, 8 offerings with schedules",
+    "osas_mock": "Fixture server with personas: active student, alumni, inactive, timeout, malformed-response",
+    "time_control": "All time-dependent tests use injected clock (no sleeps); token windows tested at boundaries"
+  },
+  "ci_integration": "PR: static + unit + integration (must pass to merge). main: + E2E + build. Nightly: full suite + k6 smoke + npm audit report.",
+  "quality_gates": ["No merge with failing checks", "New business rules require tests in the same PR", "Bug fixes require a regression test", "Flaky tests quarantined within 24h and fixed within a week"]
+}

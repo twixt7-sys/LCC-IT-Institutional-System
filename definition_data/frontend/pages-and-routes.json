@@ -1,0 +1,54 @@
+{
+  "$schema_note": "Complete page inventory with routes, access, and content definition",
+  "public_pages": [
+    { "route": "/", "page": "Landing", "content": "Portal identity, brief feature overview, login CTA; Guest-visible general info only" },
+    { "route": "/login", "page": "Login", "content": "Single form — students use university (OSAS) credentials, staff use portal accounts; role auto-detected; friendly errors for inactive/alumni students; lockout notice" },
+    { "route": "/forgot-password", "page": "Forgot Password", "content": "Staff local accounts only; students directed to OSAS for credential issues" },
+    { "route": "/reset-password", "page": "Reset Password", "content": "Token-validated new password form with policy hints" }
+  ],
+  "student_pages": [
+    { "route": "/app/dashboard", "page": "Student Dashboard", "widgets": ["Next class card (subject, room, countdown)", "Overall attendance rate ring", "Per-subject rate bars", "Recent activity list", "At-risk warning banner when applicable"] },
+    { "route": "/app/schedule", "page": "My Schedule", "content": "Weekly timetable grid (OSAS-synced); holiday/suspension/makeup badges from calendar exceptions" },
+    { "route": "/app/scan", "page": "Scan Attendance", "content": "Fullscreen camera scanner; instant Present/Late confirmation; specific error states with retry (QR rotates every minute)" },
+    { "route": "/app/attendance", "page": "My Attendance", "content": "Filterable history (term/subject/date/status); per-subject summaries; 'Request correction' action per record with reason + attachment" },
+    { "route": "/app/attendance/corrections", "page": "My Corrections", "content": "Request list with Pending/Approved/Rejected status and reviewer notes" },
+    { "route": "/app/notifications", "page": "Notifications", "content": "Feed with read state; preference toggles per event type" },
+    { "route": "/app/profile", "page": "Profile", "content": "OSAS-synced fields read-only (ID, program, year, section, status, photo); local fields editable (contact); adviser shown; device sessions list with revoke" }
+  ],
+  "faculty_pages": [
+    { "route": "/app/dashboard", "page": "Faculty Dashboard", "widgets": ["Today's classes with Start Session buttons", "Active session live counter", "Weekly/monthly class rate trend", "At-risk students table", "Pending corrections badge"] },
+    { "route": "/app/classes", "page": "My Classes", "content": "Assigned offerings for the term: subject, section, schedule, room, enrollment count, attendance rate" },
+    { "route": "/app/classes/:offeringId", "page": "Class Detail", "content": "Roster, schedule, session history, per-student rates, export actions" },
+    { "route": "/app/sessions/:id/live", "page": "Live Session (Projector Mode)", "content": "Fullscreen dynamic QR (regenerates every 60s), class name, live Present/Late counter; side roster panel; static-QR indicator when enabled; Close Session with absents preview" },
+    { "route": "/app/attendance/records", "page": "Attendance Records", "content": "Filterable grid across own classes; manual entry (technical-issue fallback) and override dialogs (reason required)" },
+    { "route": "/app/attendance/corrections", "page": "Correction Requests", "content": "Queue with evidence view; approve/reject with note" },
+    { "route": "/app/reports", "page": "Reports", "content": "Session sheets, class summaries, per-student, at-risk; daily/weekly/monthly/semester ranges; CSV/XLSX/PDF export" }
+  ],
+  "admin_pages": [
+    { "route": "/app/dashboard", "page": "Admin Dashboard", "widgets": ["KPI tiles: today's rate, active sessions now, total students/faculty", "Term trend chart", "Section comparison chart", "Low-attendance classes table", "Recent audit feed", "OSAS sync status card"] },
+    { "route": "/app/students", "page": "Students", "content": "Directory with filters (course/year/section/status), OSAS sync indicators, CSV import wizard with row-validation preview, adviser assignment" },
+    { "route": "/app/students/:id", "page": "Student Detail", "content": "Profile (OSAS fields read-only), enrollments, full attendance history, corrections, notes" },
+    { "route": "/app/faculty", "page": "Faculty", "content": "Directory, create with linked account, assignment overview (classes/sections/rooms)" },
+    { "route": "/app/subjects", "page": "Subjects", "content": "CRUD: code, title, units, type, semester" },
+    { "route": "/app/sections", "page": "Sections", "content": "CRUD: course/year, capacity, adviser" },
+    { "route": "/app/offerings", "page": "Class Offerings", "content": "Subject+section+faculty+term assembly; per-offering grace/cutoff overrides; schedule editor with conflict detection" },
+    { "route": "/app/enrollments", "page": "Enrollments", "content": "Bulk enroll by section or list; drop with history preserved" },
+    { "route": "/app/calendar", "page": "Academic Calendar", "content": "Calendar exceptions: holidays, suspensions, makeup classes, special events; OSAS sync + manual entries; shows affected sessions" },
+    { "route": "/app/monitoring", "page": "Attendance Monitoring", "content": "Live view of all open sessions (rooms, counts, percentages); drill into any session; department-wide day view" },
+    { "route": "/app/reports", "page": "Department Reports", "content": "Daily/weekly/monthly/semester; per student/subject/instructor/section; comparisons; exports" },
+    { "route": "/app/corrections", "page": "Correction Approvals", "content": "Department-wide queue with SLA aging indicators" }
+  ],
+  "super_admin_pages": [
+    { "route": "/app/users", "page": "User Management", "content": "All accounts, roles, activation, forced resets, device sessions" },
+    { "route": "/app/terms", "page": "Academic Terms", "content": "Year/semester CRUD, current-term switch, term dates" },
+    { "route": "/app/settings", "page": "System Settings", "content": "Attendance thresholds, QR rotation interval, static-QR allowance, OSAS config + manual sync triggers, email templates, module feature flags, maintenance banner, timezone/date formats" },
+    { "route": "/app/audit-logs", "page": "Audit Logs", "content": "Filterable log explorer (actor/entity/action/date) with before/after diff view" }
+  ],
+  "shared_ux_rules": [
+    "Every list page: search + filters + server pagination + empty/loading/error states",
+    "Every destructive action: ConfirmDialog stating consequences",
+    "Every mutation: toast on success/failure; forms preserve input on error",
+    "Breadcrumbs on all nested pages; document titles per page",
+    "Unsaved-changes guard on dirty forms"
+  ]
+}

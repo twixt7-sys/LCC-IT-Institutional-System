@@ -1,0 +1,75 @@
+{
+  "$schema_note": "Frontend architecture definition — React SPA for the Legacy IT Student Portal",
+  "stack": {
+    "framework": "React 18 + TypeScript 5 (strict)",
+    "build_tool": "Vite 5 (fast HMR, route-level code splitting, env via import.meta.env)",
+    "package_manager": "pnpm (workspace member: apps/web)",
+    "styling": "Tailwind CSS 3 + shadcn/ui (Radix primitives, copied-in components — no heavy UI dependency)",
+    "icons": "lucide-react",
+    "routing": "React Router v6 (createBrowserRouter, lazy route modules)",
+    "server_state": "TanStack Query v5 (caching, retries, optimistic updates, invalidation on socket events)",
+    "client_state": "Zustand (auth session, UI preferences, active-session store)",
+    "forms": "react-hook-form + zod resolvers (schemas imported from packages/shared — same validation as the API)",
+    "charts": "Recharts (attendance trends, distributions, comparisons)",
+    "qr_scanning": "html5-qrcode (camera-based scanner component)",
+    "qr_display": "qrcode.react (renders the encrypted payload pushed by the server)",
+    "realtime": "socket.io-client (singleton, JWT handshake, auto-reconnect)",
+    "http": "axios instance with interceptors (attach access token, transparent refresh on 401, error normalization)",
+    "dates": "date-fns + date-fns-tz (Asia/Manila display, UTC transport)",
+    "pwa": "vite-plugin-pwa — installable, offline shell for the scanner page (scan submission still requires connectivity in Phase 1)"
+  },
+  "directory_structure": {
+    "apps/web/src/": [
+      "main.tsx, App.tsx, router.tsx",
+      "features/<module>/ → pages/, components/, hooks/, api.ts (module-scoped TanStack Query hooks)",
+      "components/ui/ (shadcn/ui primitives), components/layout/ (AppShell, Sidebar, Topbar, PageHeader)",
+      "components/common/ (DataTable, EmptyState, ErrorState, ConfirmDialog, StatusBadge, StatCard)",
+      "stores/ (authStore, uiStore, sessionStore)",
+      "lib/ (axios.ts, socket.ts, queryClient.ts, dates.ts, permissions.ts)",
+      "hooks/ (useAuth, useSocketEvent, useDebounce, useMediaQuery)"
+    ]
+  },
+  "layout": {
+    "app_shell": "Collapsible sidebar (desktop ≥1024px) / drawer (mobile) + topbar (global search, notification bell with unread badge, theme toggle, profile menu)",
+    "content": "Max-width container, PageHeader (title, breadcrumbs, primary action), consistent card-based sections",
+    "responsive_breakpoints": "Tailwind defaults — sm 640, md 768, lg 1024, xl 1280; mobile-first",
+    "theme": "Light/dark via CSS variables (shadcn/ui token convention); institutional primary color; WCAG AA contrast; prefers-reduced-motion respected",
+    "special_fullscreen_routes": ["Faculty live QR display (projector mode — QR + class name + live counter, no chrome)", "Student scanner (camera viewport + status feedback)"]
+  },
+  "routing_and_guards": {
+    "public": ["/", "/login", "/forgot-password", "/reset-password"],
+    "guarded": "RequireAuth wrapper → redirects to /login; RequireRole(roles) per route group; module feature flags hide disabled routes (404)",
+    "role_landing": { "STUDENT": "/app/dashboard", "FACULTY": "/app/dashboard", "DEPT_ADMIN": "/app/dashboard", "SUPER_ADMIN": "/app/dashboard" },
+    "lazy_loading": "Each feature's routes are a lazy chunk; initial bundle target < 200KB gzipped"
+  },
+  "auth_handling": {
+    "access_token": "Kept in memory (Zustand) only — never localStorage",
+    "refresh": "httpOnly cookie; axios interceptor calls /auth/refresh once on 401 then retries queued requests; hard logout on refresh failure",
+    "session_restore": "On app boot, silent /auth/refresh attempt → /auth/me",
+    "idle_logout": "30 min inactivity → warning dialog → logout"
+  },
+  "data_conventions": {
+    "query_keys": "['module', 'entity', params] — e.g. ['attendance','records',{sessionId}]",
+    "invalidation": "Socket events invalidate related queries (attendance:recorded → session roster + dashboard)",
+    "optimistic_updates": "Corrections review, notification read state",
+    "tables": "Shared DataTable: server-side pagination/sort/filter, column visibility, empty/loading/error states, row actions by permission",
+    "feedback": "Toasts (sonner) for outcomes; inline field errors from zod; skeletons for loading; ErrorBoundary per route"
+  },
+  "key_screens_behavior": {
+    "faculty_live_session": "Fullscreen rotating QR updated via socket 'qr:rotate' every 60s (poll fallback); live roster side panel with Present/Late counts animating in as scans arrive; close-session confirm with absents preview",
+    "student_scanner": "Camera scan → POST /attendance/scan → success screen (green, status Present/Late, time) or specific error (session closed, not enrolled, already recorded, expired code — prompts rescan since QR rotates every minute)",
+    "monitoring": "Filterable history grid; color-coded StatusBadge (Present=green, Late=amber, Absent=red, Excused=blue); override dialog with mandatory reason",
+    "reports": "Parameter form → preview table/charts → export buttons (CSV/XLSX/PDF); async exports show notification when ready"
+  },
+  "accessibility": [
+    "Radix primitives give keyboard/focus/ARIA behavior for free",
+    "Focus-visible rings, skip-to-content link, semantic landmarks",
+    "Charts include accessible data table toggle",
+    "Color is never the only status indicator (badges carry text)"
+  ],
+  "quality_tooling": {
+    "lint_format": "ESLint (typescript-eslint, react-hooks, jsx-a11y) + Prettier",
+    "testing": "Vitest + React Testing Library (components/hooks), Playwright (E2E) — see ../testing/testing-definition.json",
+    "type_safety": "API response types from packages/shared; no anys in strict mode"
+  }
+}

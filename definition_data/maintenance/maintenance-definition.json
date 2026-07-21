@@ -1,0 +1,55 @@
+{
+  "$schema_note": "Maintenance & operations definition — routines, runbooks, support, and lifecycle management",
+  "operating_calendar": {
+    "daily": ["Automated: DB backup 02:30, OSAS nightly sync 02:00, session pre-generation 03:00, at-risk scan 18:00, token/notification cleanup 04:00", "Check uptime monitor + overnight alerts (5 min)"],
+    "weekly": ["Review error logs and 5xx trends", "Verify offsite backup copy succeeded", "Review OSAS sync logs for PARTIAL results", "Check disk usage and DB size growth"],
+    "per_semester": ["Create new academic term + switch is_current", "Import/verify schedules and calendar (holidays, suspensions) from OSAS", "Bulk enrollment for new offerings", "Archive previous term sessions/records to archive schema", "Restore drill from a real backup", "Dependency major-version review", "Access review: deactivate separated faculty/staff accounts"],
+    "annual": ["Rotate secrets (JWT, QR key, OSAS key, SMTP)", "Renew/verify domain + certificate automation", "Capacity review vs enrollment growth", "Prune 5-year-old archived data per retention policy"]
+  },
+  "runbooks": {
+    "deploy": "Merge to main → CI deploys → verify /healthz + one live scan in staging-mode smoke → announce in maintenance banner if downtime expected",
+    "rollback": "docker compose pull previous tag → up -d → verify /healthz; DB migrations are forward-compatible (destructive changes staged over two releases) so old image runs on new schema",
+    "osas_outage": "Symptoms: student logins failing with OSAS_UNAVAILABLE, sync FAILED alerts. Action: confirm via /integrations/osas/status → notify OSAS office → existing sessions keep working (cached profiles) → when restored, trigger manual syncs → verify sync logs SUCCESS",
+    "database_restore": "Stop api → restore latest dump via restore script → prisma migrate status check → start api → verify healthz + spot-check today's attendance",
+    "stuck_open_sessions": "If autoclose job fails: list sessions status=OPEN past cutoff → run close command per session (marks absents) → investigate job logs",
+    "compromised_account": "Revoke all refresh tokens (family) → force password reset (staff) or coordinate with OSAS (student) → review audit logs for actions in window → document incident",
+    "certificate_failure": "certbot renew --force-renewal → nginx reload → verify; alert fires 14 days before expiry so this should be preemptive"
+  },
+  "incident_response": {
+    "severities": {
+      "SEV1": "Attendance capture down during class hours — respond immediately, workaround: faculty manual attendance; postmortem required",
+      "SEV2": "Degraded (slow scans, realtime down w/ polling fallback, OSAS outage) — respond same day",
+      "SEV3": "Non-blocking bug or cosmetic issue — next release"
+    },
+    "process": ["Acknowledge alert", "Communicate via maintenance banner + admin notification", "Mitigate (rollback/restart/workaround)", "Root-cause fix with regression test", "Postmortem note in ops log for SEV1/SEV2"],
+    "manual_fallback": "Faculty manual attendance entry is the universal fallback — the system never blocks a class from recording attendance"
+  },
+  "support_model": {
+    "tier_1": "Department Admin handles user questions (login issues, correction workflow, report requests)",
+    "tier_2": "System maintainer handles bugs, data fixes (always via audited admin actions, never direct SQL), and OSAS coordination",
+    "common_requests": {
+      "student_cannot_login": "Check OSAS status (active?) → check lockout → check OSAS health endpoint",
+      "scan_rejected": "Check rejection reason in attendance logs (expired window / not enrolled / closed session / duplicate) — each has a specific user-facing message",
+      "wrong_attendance_status": "Direct student to correction request flow; staff never edits without the workflow",
+      "faculty_new_class": "Dept Admin assigns offering; faculty access follows automatically"
+    },
+    "feedback_loop": "In-app feedback link → triaged monthly into the module backlog"
+  },
+  "updates_and_dependencies": {
+    "cadence": "Security patches: within a week (Dependabot PRs auto-tested by CI). Minor updates: monthly batch. Major upgrades (Node LTS, Postgres, React): per-semester planned task on staging first",
+    "database_migrations": "Prisma migrations only; destructive migrations require a fresh backup + staging verification; never edit applied migrations",
+    "definition_sync_rule": "Any behavior change must update the definition files (SystemDefinition*.json, definition_data/**) in the same PR — definitions are the contract"
+  },
+  "data_administration": {
+    "retention": "Attendance + audit: 5 academic years live/archive, then purge; notifications: 90 days after read; logs: 12 months",
+    "archival": "Term-end job moves closed sessions/records to archive schema; reports can query archives on demand",
+    "data_fixes": "Only through audited admin endpoints — direct DB writes prohibited in production",
+    "exports_for_registrar": "Semester attendance summaries exported and handed off per institutional records procedure"
+  },
+  "documentation_upkeep": [
+    "README + definition_data kept current (enforced in PR review checklist)",
+    "Ops log (deployments, incidents, drills) maintained per semester",
+    ".env.example updated whenever a config key is added",
+    "Admin/faculty user guides refreshed each semester before classes start"
+  ]
+}

@@ -1,0 +1,200 @@
+{
+  "$schema_note": "Database definition — PostgreSQL 16 via Prisma. Conventions: UUID v7 PKs, snake_case tables, created_at/updated_at on all tables, deleted_at for soft-deletable tables, all timestamps UTC (timestamptz).",
+  "engine": { "dbms": "PostgreSQL 16", "orm": "Prisma", "migrations": "prisma migrate (checked into repo)", "seeding": "prisma/seed.ts — terms, settings defaults, demo users per environment" },
+
+  "tables": {
+    "users": {
+      "purpose": "Login identity for all roles; students link to OSAS, staff are local",
+      "columns": {
+        "id": "uuid PK", "email": "citext unique nullable (staff required, students optional)",
+        "password_hash": "text nullable (null for OSAS-authenticated students)",
+        "role": "enum user_role (SUPER_ADMIN, DEPT_ADMIN, FACULTY, STUDENT)",
+        "auth_provider": "enum auth_provider (LOCAL, OSAS)",
+        "is_active": "boolean default true", "must_change_password": "boolean default false",
+        "failed_attempts": "int default 0", "locked_until": "timestamptz nullable",
+        "last_login_at": "timestamptz nullable",
+        "created_at / updated_at / deleted_at": "timestamptz"
+      }
+    },
+    "students": {
+      "purpose": "Student profile — OSAS-synced fields + local-only fields",
+      "columns": {
+        "id": "uuid PK", "user_id": "uuid FK users unique",
+        "student_id": "text unique (OSAS format)",
+        "first_name / middle_name / last_name": "text (middle nullable)",
+        "contact_number": "text nullable",
+        "course_id": "uuid FK courses (program from OSAS)",
+        "year_level": "smallint 1-4", "section_id": "uuid FK sections nullable",
+        "status": "enum student_status (REGULAR, IRREGULAR, TRANSFEREE, RETURNEE, DROPPED, GRADUATED, INACTIVE) — synced from OSAS",
+        "photo_url": "text nullable (from OSAS)",
+        "adviser_faculty_id": "uuid FK faculty nullable (LOCAL-ONLY, not in OSAS)",
+        "osas_last_synced_at": "timestamptz nullable",
+        "created_at / updated_at / deleted_at": "timestamptz"
+      }
+    },
+    "faculty": {
+      "purpose": "Faculty profile and assignment anchor",
+      "columns": {
+        "id": "uuid PK", "user_id": "uuid FK users unique", "employee_id": "text unique",
+        "first_name / middle_name / last_name": "text", "contact_number": "text nullable",
+        "position": "text (Instructor, Asst. Professor, ...)",
+        "employment_type": "enum (FULL_TIME, PART_TIME)",
+        "status": "enum (ACTIVE, ON_LEAVE, INACTIVE)",
+        "created_at / updated_at / deleted_at": "timestamptz"
+      }
+    },
+    "courses": { "columns": { "id": "uuid PK", "code": "text unique (BSIT)", "name": "text", "is_active": "boolean" } },
+    "sections": {
+      "columns": {
+        "id": "uuid PK", "course_id": "uuid FK courses", "name": "text (BSIT-3A)",
+        "year_level": "smallint", "capacity": "smallint nullable",
+        "adviser_faculty_id": "uuid FK faculty nullable",
+        "unique": "(course_id, name)"
+      }
+    },
+    "subjects": {
+      "columns": {
+        "id": "uuid PK", "code": "text unique (IT301)", "title": "text", "units": "smallint 1-6",
+        "type": "enum (LECTURE, LAB, BOTH)", "semester_offered": "enum (FIRST, SECOND, SUMMER, ANY)", "is_active": "boolean"
+      }
+    },
+    "academic_terms": {
+      "columns": {
+        "id": "uuid PK", "academic_year": "text (2026-2027)", "semester": "enum (FIRST, SECOND, SUMMER)",
+        "start_date / end_date": "date", "is_current": "boolean (partial unique index where true)"
+      }
+    },
+    "class_offerings": {
+      "purpose": "A subject taught to a section by a faculty within a term — the attendance anchor",
+      "columns": {
+        "id": "uuid PK", "subject_id": "uuid FK", "section_id": "uuid FK", "faculty_id": "uuid FK", "term_id": "uuid FK",
+        "grace_minutes": "smallint nullable (fallback to settings default 15)",
+        "late_cutoff_minutes": "smallint nullable (fallback to settings default 30)",
+        "unique": "(subject_id, section_id, term_id)"
+      }
+    },
+    "schedules": {
+      "columns": {
+        "id": "uuid PK", "offering_id": "uuid FK", "day_of_week": "smallint 1-7",
+        "start_time / end_time": "time", "room": "text", "type": "enum (LECTURE, LAB)",
+        "source": "enum (LOCAL, OSAS)",
+        "check": "end_time > start_time",
+        "app_constraint": "No overlaps for same section, faculty, or room (validated in service)"
+      }
+    },
+    "calendar_exceptions": {
+      "purpose": "Holidays, suspensions, makeup classes, special events — drive session generation (BR-15)",
+      "columns": {
+        "id": "uuid PK", "term_id": "uuid FK", "date": "date",
+        "type": "enum (HOLIDAY, SUSPENSION, MAKEUP_CLASS, SPECIAL_EVENT)",
+        "title": "text", "affects": "enum (ALL, SECTION, OFFERING)", "target_id": "uuid nullable",
+        "makeup_details": "jsonb nullable (start/end time, room for MAKEUP_CLASS/SPECIAL_EVENT)",
+        "source": "enum (LOCAL, OSAS)"
+      }
+    },
+    "enrollments": {
+      "columns": {
+        "id": "uuid PK", "offering_id": "uuid FK", "student_id": "uuid FK",
+        "status": "enum (ENROLLED, DROPPED)", "enrolled_at": "timestamptz", "dropped_at": "timestamptz nullable",
+        "unique": "(offering_id, student_id)"
+      }
+    },
+    "class_sessions": {
+      "purpose": "One attendance-taking instance of an offering (class meeting or event)",
+      "columns": {
+        "id": "uuid PK", "offering_id": "uuid FK", "schedule_id": "uuid FK nullable (null for makeup/special sessions)",
+        "date": "date", "started_at / closed_at": "timestamptz nullable",
+        "status": "enum (SCHEDULED, OPEN, CLOSED, CANCELLED)",
+        "qr_mode": "enum (DYNAMIC, STATIC) default DYNAMIC",
+        "qr_secret": "bytea (server-only; never serialized to clients)",
+        "opened_by": "uuid FK faculty nullable", "cancel_reason": "text nullable",
+        "summary": "jsonb nullable (counts snapshot on close)",
+        "unique": "(offering_id, schedule_id, date) where schedule_id not null"
+      }
+    },
+    "attendance_records": {
+      "purpose": "THE core fact table — one row per student per session (BR-01)",
+      "columns": {
+        "id": "uuid PK", "session_id": "uuid FK", "student_id": "uuid FK",
+        "status": "enum (PRESENT, LATE, ABSENT, EXCUSED)",
+        "scanned_at": "timestamptz nullable (null for auto-absent/manual)",
+        "marked_by": "enum (SCAN, SYSTEM_AUTO_ABSENT, FACULTY_MANUAL, ADMIN, CORRECTION)",
+        "marked_by_user_id": "uuid FK users nullable",
+        "override_reason": "text nullable (required when marked_by != SCAN/SYSTEM)",
+        "unique": "(session_id, student_id)  ← duplicate prevention at the database level"
+      }
+    },
+    "attendance_corrections": {
+      "columns": {
+        "id": "uuid PK", "record_id": "uuid FK attendance_records",
+        "requested_by": "uuid FK students", "requested_status": "enum",
+        "reason": "text (5-500 chars)", "attachment_url": "text nullable",
+        "status": "enum (PENDING, APPROVED, REJECTED)",
+        "reviewed_by": "uuid FK users nullable", "reviewed_at": "timestamptz nullable", "review_note": "text nullable"
+      }
+    },
+    "notifications": {
+      "columns": {
+        "id": "uuid PK", "user_id": "uuid FK", "type": "text (event key)", "title": "text", "body": "text",
+        "data": "jsonb (deep-link payload)", "read_at": "timestamptz nullable", "created_at": "timestamptz"
+      }
+    },
+    "notification_preferences": { "columns": { "user_id": "uuid FK", "event_type": "text", "in_app": "boolean", "email": "boolean", "pk": "(user_id, event_type)" } },
+    "refresh_tokens": {
+      "purpose": "Rotating refresh tokens + device tracking",
+      "columns": {
+        "id": "uuid PK", "user_id": "uuid FK", "token_hash": "text (SHA-256)", "family_id": "uuid (reuse detection)",
+        "device_info": "text (user-agent summary)", "ip_address": "inet",
+        "expires_at": "timestamptz", "revoked_at": "timestamptz nullable"
+      }
+    },
+    "audit_logs": {
+      "columns": {
+        "id": "uuid PK", "actor_user_id": "uuid FK nullable (null = system)",
+        "action": "text (entity.verb e.g. attendance.override)", "entity": "text", "entity_id": "uuid nullable",
+        "before / after": "jsonb nullable", "ip_address": "inet nullable", "created_at": "timestamptz",
+        "note": "Append-only — no UPDATE/DELETE grants"
+      }
+    },
+    "osas_sync_logs": {
+      "columns": {
+        "id": "uuid PK", "sync_type": "enum (STUDENTS, SCHEDULES, CALENDAR)",
+        "trigger": "enum (CRON, MANUAL)", "started_at / finished_at": "timestamptz",
+        "status": "enum (SUCCESS, PARTIAL, FAILED)", "records_processed": "int", "error_details": "jsonb nullable"
+      }
+    },
+    "settings": { "columns": { "key": "text PK", "value": "jsonb", "updated_by": "uuid FK nullable", "updated_at": "timestamptz" } }
+  },
+
+  "indexes": [
+    "users(email) unique; users(role)",
+    "students(student_id) unique; students(section_id); students(course_id, year_level)",
+    "faculty(employee_id) unique",
+    "class_offerings(term_id, faculty_id); class_offerings(subject_id, section_id, term_id) unique",
+    "schedules(offering_id, day_of_week)",
+    "calendar_exceptions(term_id, date)",
+    "enrollments(offering_id, student_id) unique; enrollments(student_id)",
+    "class_sessions(offering_id, date); class_sessions(status) partial where status = 'OPEN'",
+    "attendance_records(session_id, student_id) unique; attendance_records(student_id, created_at); attendance_records(status)",
+    "attendance_corrections(status) partial where status = 'PENDING'",
+    "notifications(user_id, read_at); refresh_tokens(user_id); refresh_tokens(token_hash)",
+    "audit_logs(created_at); audit_logs(entity, entity_id); osas_sync_logs(started_at)"
+  ],
+
+  "integrity_rules": [
+    "FK ON DELETE: RESTRICT for academic data (no orphan attendance); CASCADE only users→refresh_tokens/notifications",
+    "attendance_records unique(session_id, student_id) is the hard duplicate-prevention guarantee",
+    "Enrollment verified in service AND by FK chain before attendance insert",
+    "Soft delete via deleted_at on users/students/faculty/subjects/sections; Prisma middleware filters them by default",
+    "qr_secret excluded from all Prisma selects exposed to serializers",
+    "audit_logs and osas_sync_logs are append-only"
+  ],
+
+  "erd_text": "courses 1—N sections 1—N students N—1 users; subjects 1—N class_offerings N—1 faculty, N—1 academic_terms; class_offerings 1—N schedules, 1—N class_sessions, 1—N enrollments N—1 students; class_sessions 1—N attendance_records N—1 students; attendance_records 1—N attendance_corrections; users 1—N notifications / refresh_tokens / audit_logs(actor); academic_terms 1—N calendar_exceptions",
+
+  "data_lifecycle": {
+    "retention": "Attendance and audit data retained for 5 academic years, then archived to cold storage",
+    "archival": "Term-end: closed sessions and records exported to archive schema; live tables stay lean",
+    "osas_sync_strategy": "Upsert by student_id; local-only columns (adviser_faculty_id, preferences) never overwritten by sync; conflicts logged in osas_sync_logs"
+  }
+}

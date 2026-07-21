@@ -1,0 +1,42 @@
+{
+  "$schema_note": "Registry of all modules — current and future. Every module has a feature flag in settings; frontend and backend both organize code by these module keys.",
+  "conventions": {
+    "backend_path": "apps/api/src/modules/<key>/ (routes, controller, service, repository, schemas)",
+    "frontend_path": "apps/web/src/features/<key>/ (pages, components, hooks, api)",
+    "feature_flag": "settings key modules.<key>.enabled — disabled modules hide routes (404) and UI entries"
+  },
+  "core_modules": [
+    { "key": "auth", "name": "Authentication", "status": "Phase 1", "depends_on": [], "summary": "OSAS SSO for students (active-status check), local credentials for staff, JWT access + rotating refresh, lockout, reset, optional admin OTP, device tracking." },
+    { "key": "students", "name": "Student Management", "status": "Phase 1", "depends_on": ["auth", "osas"], "summary": "OSAS-synced profiles (ID, program, year, section, status, photo) + local data (adviser, preferences); CSV import for edge cases; status lifecycle." },
+    { "key": "faculty", "name": "Faculty Management", "status": "Phase 1", "depends_on": ["auth"], "summary": "Faculty records, employment info, roles, assigned classes/events/sections/rooms, attendance permissions." },
+    { "key": "subjects", "name": "Subject Management", "status": "Phase 1", "depends_on": [], "summary": "Subject code, title, units, lecture/lab type, instructor, semester, schedule, room." },
+    { "key": "sections", "name": "Section Management", "status": "Phase 1", "depends_on": [], "summary": "Sections per course/year, capacity, adviser assignment." },
+    { "key": "scheduling", "name": "Scheduling & Calendar", "status": "Phase 1", "depends_on": ["subjects", "sections", "osas"], "summary": "Weekly schedules (importable from OSAS), calendar exceptions: holidays, suspensions, makeup classes, special events; session generation respects exceptions." },
+    { "key": "qr-attendance", "name": "QR Attendance", "status": "Phase 1", "depends_on": ["auth", "students", "scheduling"], "summary": "Session lifecycle, dynamic QR regenerating every 60s (encrypted, time-limited), static QR option for events, scanner, server-side validation, duplicate prevention, manual fallback." },
+    { "key": "monitoring", "name": "Attendance Monitoring", "status": "Phase 1", "depends_on": ["qr-attendance"], "summary": "Live roster (students inside room, late list, percentages), today's classes/events, weekly/monthly statistics, history, overrides, correction workflow." },
+    { "key": "reports", "name": "Reports", "status": "Phase 1", "depends_on": ["monitoring"], "summary": "Daily/weekly/monthly/semester reports, per student/subject/instructor; CSV, Excel (XLSX), PDF export." },
+    { "key": "dashboard", "name": "Dashboard", "status": "Phase 1", "depends_on": ["monitoring", "reports"], "summary": "Role-shaped widgets and charts via a single role-aware endpoint." },
+    { "key": "notifications", "name": "Notifications", "status": "Phase 1", "depends_on": ["auth"], "summary": "In-app realtime (Socket.IO) + transactional email; per-user preferences and read state." },
+    { "key": "settings", "name": "Settings", "status": "Phase 1", "depends_on": ["auth"], "summary": "Terms, thresholds, QR rotation interval, static-QR allowance, OSAS sync config, module flags, maintenance banner." },
+    { "key": "osas", "name": "OSAS Integration", "status": "Phase 1", "depends_on": [], "summary": "Server-to-server client for the university OSAS API: SSO verification, profile sync, schedule import, calendar exception sync, nightly jobs, health/status endpoint, sync logs." },
+    { "key": "audit", "name": "Audit & Logs", "status": "Phase 1", "depends_on": ["auth"], "summary": "Audit logs (before/after, actor, IP), activity logs, login logs, attendance logs, OSAS sync logs." }
+  ],
+  "future_modules": [
+    { "key": "announcements", "name": "Announcements", "status": "Phase 2", "summary": "Targeted posts (all/course/year/section) with read tracking." },
+    { "key": "student-profile", "name": "Student Profile (extended)", "status": "Phase 2", "summary": "Extended profile beyond OSAS fields; documents; emergency contacts." },
+    { "key": "digital-id", "name": "Digital ID", "status": "Phase 2", "summary": "Per-student QR identity card enabling kiosk scan mode (faculty scans students)." },
+    { "key": "grades", "name": "Grades", "status": "Phase 3", "summary": "Grade encoding, viewing, and term summaries." },
+    { "key": "clearance", "name": "Clearance", "status": "Phase 3", "summary": "Signatory workflow for term clearance." },
+    { "key": "lab-borrowing", "name": "Laboratory Borrowing", "status": "Phase 3", "summary": "Equipment inventory, borrow/return, accountability." },
+    { "key": "events", "name": "Events", "status": "Phase 4", "summary": "Event creation with QR attendance reuse (event sessions)." },
+    { "key": "organizations", "name": "Organizations", "status": "Phase 4", "summary": "Student orgs, membership, officers." },
+    { "key": "advising", "name": "Advising", "status": "Phase 4", "summary": "Adviser-student consultations and notes." },
+    { "key": "evaluation", "name": "Evaluation", "status": "Phase 4", "summary": "Faculty/subject evaluation forms and analytics." }
+  ],
+  "extension_rules": [
+    "New modules follow the same feature-folder pattern on both tiers and register their own routes under /api/v1/<key>",
+    "New modules ship disabled behind their feature flag until accepted in staging",
+    "Shared zod schemas/types go in packages/shared; modules never import from another module's internals — only via service interfaces",
+    "Database changes arrive as Prisma migrations; destructive migrations require a backup checkpoint"
+  ]
+}

@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LCC IT Student Portal — BSIT Prototype</title>
+<style>
+  :root{
+    --navy-950:#081a33;
+    --navy-900:#0b2447;
+    --navy-800:#123262;
+    --navy-700:#19407c;
+    --navy-600:#1f4e96;
+    --navy-500:#2a5fb0;
+    --navy-100:#e8eef7;
+    --navy-50:#f4f7fc;
+    --white:#ffffff;
+    --ink:#1a2333;
+    --ink-soft:#5a6779;
+    --line:#dde4ee;
+    --green:#15803d; --green-bg:#dcfce7;
+    --amber:#b45309; --amber-bg:#fef3c7;
+    --red:#b91c1c;   --red-bg:#fee2e2;
+    --blue:#1d4ed8;  --blue-bg:#dbeafe;
+    --radius:10px;
+    --shadow:0 1px 3px rgba(11,36,71,.08), 0 4px 16px rgba(11,36,71,.06);
+    --font:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:var(--font);color:var(--ink);background:var(--navy-50);font-size:14.5px;line-height:1.5}
+  button{font-family:inherit;cursor:pointer}
+  input,select,textarea{font-family:inherit;font-size:14px}
+  a{color:var(--navy-600);text-decoration:none}
+  ::selection{background:var(--navy-600);color:#fff}
+
+  /* ---------- generic ---------- */
+  .btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:600;transition:.15s}
+  .btn-primary{background:var(--navy-800);color:#fff}
+  .btn-primary:hover{background:var(--navy-600)}
+  .btn-outline{background:#fff;color:var(--navy-800);border:1.5px solid var(--navy-800)}
+  .btn-outline:hover{background:var(--navy-100)}
+  .btn-ghost{background:transparent;color:var(--ink-soft)}
+  .btn-ghost:hover{background:var(--navy-100);color:var(--navy-800)}
+  .btn-danger{background:var(--red);color:#fff}
+  .btn-sm{padding:5px 11px;font-size:12.5px;border-radius:6px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card-pad{padding:20px}
+  .card h3{font-size:15px;color:var(--navy-900);margin-bottom:12px}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:2.5px 10px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.02em}
+  .b-present{background:var(--green-bg);color:var(--green)}
+  .b-late{background:var(--amber-bg);color:var(--amber)}
+  .b-absent{background:var(--red-bg);color:var(--red)}
+  .b-excused{background:var(--blue-bg);color:var(--blue)}
+  .b-navy{background:var(--navy-100);color:var(--navy-800)}
+  .b-open{background:var(--green-bg);color:var(--green)}
+  .b-pending{background:var(--amber-bg);color:var(--amber)}
+  .b-approved{background:var(--green-bg);color:var(--green)}
+  .b-rejected{background:var(--red-bg);color:var(--red)}
+  .b-gray{background:#eef1f6;color:var(--ink-soft)}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);text-align:left;padding:10px 14px;border-bottom:2px solid var(--line);background:var(--navy-50)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--navy-50)}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+  .toolbar input[type=search],.toolbar select,.filter-input{padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;outline:none;min-width:160px}
+  .toolbar input:focus,.filter-input:focus{border-color:var(--navy-600);box-shadow:0 0 0 3px rgba(31,78,150,.12)}
+  .pagination{display:flex;gap:6px;align-items:center;justify-content:flex-end;padding:12px 14px;color:var(--ink-soft);font-size:13px}
+  .pagination button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px}
+  .pagination button.active{background:var(--navy-800);color:#fff;border-color:var(--navy-800)}
+  .grid{display:grid;gap:16px}
+  .cols-2{grid-template-columns:repeat(2,1fr)}
+  .cols-3{grid-template-columns:repeat(3,1fr)}
+  .cols-4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:1100px){.cols-4{grid-template-columns:repeat(2,1fr)}.cols-3{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.cols-4,.cols-3,.cols-2{grid-template-columns:1fr}}
+  .muted{color:var(--ink-soft)}
+  .small{font-size:12.5px}
+  .mono{font-family:Consolas,monospace}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--navy-700);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+  .avatar.lg{width:64px;height:64px;font-size:22px}
+
+  /* ---------- landing ---------- */
+  .landing{min-height:100vh;background:linear-gradient(160deg,var(--navy-950) 0%,var(--navy-900) 45%,var(--navy-700) 100%);color:#fff;display:flex;flex-direction:column}
+  .landing-nav{display:flex;justify-content:space-between;align-items:center;padding:22px 6vw}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:17px;letter-spacing:.02em}
+  .brand .logo{width:40px;height:40px;border-radius:10px;background:#fff;color:var(--navy-900);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900}
+  .hero{flex:1;display:flex;align-items:center;gap:5vw;padding:40px 6vw 60px;flex-wrap:wrap}
+  .hero-copy{max-width:560px}
+  .hero-copy .eyebrow{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);padding:5px 14px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:22px}
+  .hero-copy h1{font-size:clamp(30px,4.2vw,46px);line-height:1.12;margin-bottom:18px}
+  .hero-copy p{color:#c6d4ea;font-size:16px;margin-bottom:28px}
+  .hero-qr{background:#fff;border-radius:18px;padding:26px;box-shadow:0 24px 60px rgba(0,0,0,.35);text-align:center;color:var(--ink)}
+  .hero-qr .small{margin-top:12px}
+  .feat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;padding:0 6vw 60px}
+  .feat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:20px}
+  .feat .ic{font-size:22px;margin-bottom:10px}
+  .feat b{display:block;margin-bottom:6px;font-size:15px}
+  .feat span{color:#b9c9e2;font-size:13px}
+  .landing-foot{padding:18px 6vw;border-top:1px solid rgba(255,255,255,.12);color:#8fa5c6;font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+  /* ---------- login ---------- */
+  .login-wrap{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+  @media(max-width:900px){.login-wrap{grid-template-columns:1fr}.login-side{display:none}}
+  .login-side{background:linear-gradient(165deg,var(--navy-950),var(--navy-800));color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:44px 48px}
+  .login-side h2{font-size:30px;line-height:1.2;margin:24px 0 14px}
+  .login-side p{color:#b9c9e2;max-width:420px}
+  .login-main{display:flex;align-items:center;justify-content:center;padding:40px 24px;background:#fff}
+  .login-box{width:100%;max-width:400px}
+  .login-box h1{font-size:24px;color:var(--navy-900);margin-bottom:6px}
+  .login-box>p{color:var(--ink-soft);margin-bottom:26px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy-900);margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%;padding:10px 13px;border:1.5px solid var(--line);border-radius:8px;outline:none;transition:.15s}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--navy-600);box-shadow:0 0 0 3px rgba(31,78,150,.12)}
+  .demo-roles{margin-top:24px;border-top:1px dashed var(--line);padding-top:18px}
+  .demo-roles p{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);font-weight:700;margin-bottom:10px}
+  .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .demo-grid button{padding:10px;border:1.5px solid var(--line);background:#fff;border-radius:8px;font-weight:600;font-size:13px;color:var(--navy-800);transition:.15s;text-align:left}
+  .demo-grid button:hover{border-color:var(--navy-600);background:var(--navy-50)}
+  .demo-grid button small{display:block;font-weight:400;color:var(--ink-soft);font-size:11.5px}
+
+  /* ---------- app shell ---------- */
+  .shell{display:flex;min-height:100vh}
+  .sidebar{width:248px;background:var(--navy-900);color:#cbd8ec;display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;z-index:40;transition:transform .2s}
+  .sidebar .brand{padding:18px 18px 14px;color:#fff;border-bottom:1px solid rgba(255,255,255,.09)}
+  .sidebar .brand .logo{width:34px;height:34px;font-size:16px}
+  .nav-scroll{flex:1;overflow-y:auto;padding:12px 10px 20px}
+  .nav-group{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:#7e93b5;padding:16px 12px 6px;font-weight:700}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:8px;color:#cbd8ec;font-size:14px;font-weight:500;margin-bottom:2px;position:relative}
+  .nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+  .nav-item.active{background:#fff;color:var(--navy-900);font-weight:700}
+  .nav-item .ic{width:20px;text-align:center;font-size:15px}
+  .nav-item .count{margin-left:auto;background:var(--red);color:#fff;font-size:10.5px;font-weight:700;border-radius:99px;padding:1px 7px}
+  .nav-item.active .count{background:var(--red)}
+  .side-foot{padding:14px;border-top:1px solid rgba(255,255,255,.09);font-size:11.5px;color:#7e93b5}
+  .main{flex:1;margin-left:248px;display:flex;flex-direction:column;min-width:0}
+  .topbar{height:60px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 22px;position:sticky;top:0;z-index:30}
+  .topbar .search{flex:1;max-width:420px;position:relative}
+  .topbar .search input{width:100%;padding:8px 13px 8px 36px;border:1px solid var(--line);border-radius:99px;background:var(--navy-50);outline:none}
+  .topbar .search .ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-soft)}
+  .icon-btn{position:relative;width:38px;height:38px;border-radius:50%;border:none;background:transparent;font-size:17px;color:var(--navy-800)}
+  .icon-btn:hover{background:var(--navy-100)}
+  .icon-btn .dot{position:absolute;top:6px;right:6px;background:var(--red);color:#fff;font-size:9.5px;font-weight:700;border-radius:99px;padding:0 4.5px;line-height:14px}
+  .role-pill{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 6px;border:1px solid var(--line);border-radius:99px;background:#fff}
+  .role-pill b{font-size:13px;color:var(--navy-900);line-height:1.15;display:block}
+  .role-pill small{font-size:11px;color:var(--ink-soft)}
+  .content{padding:26px 28px 60px;max-width:1280px;width:100%;margin:0 auto}
+  .breadcrumbs{font-size:12.5px;color:var(--ink-soft);margin-bottom:6px}
+  .breadcrumbs a{color:var(--ink-soft)}
+  .breadcrumbs a:hover{color:var(--navy-700)}
+  .page-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:22px}
+  .page-head h1{font-size:23px;color:var(--navy-900)}
+  .page-head .sub{color:var(--ink-soft);margin-top:3px}
+  .hamb{display:none}
+  @media(max-width:1023px){
+    .sidebar{transform:translateX(-100%)}
+    body.side-open .sidebar{transform:none;box-shadow:0 0 0 100vmax rgba(8,26,51,.45)}
+    .main{margin-left:0}
+    .hamb{display:inline-flex}
+    .content{padding:20px 16px 60px}
+  }
+
+  /* stat cards */
+  .stat{display:flex;gap:14px;align-items:center;padding:18px}
+  .stat .ic{width:46px;height:46px;border-radius:12px;background:var(--navy-100);color:var(--navy-800);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .stat .val{font-size:23px;font-weight:800;color:var(--navy-900);line-height:1.1}
+  .stat .lbl{font-size:12.5px;color:var(--ink-soft)}
+  .stat .trend{margin-left:auto;font-size:12px;font-weight:700}
+  .trend.up{color:var(--green)} .trend.down{color:var(--red)}
+
+  /* attendance ring */
+  .ring-wrap{display:flex;align-items:center;gap:20px}
+  .ring{position:relative;width:120px;height:120px;flex-shrink:0}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:24px;color:var(--navy-900)}
+  .ring .pct small{font-size:10.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+  .bar-row .lbl{width:78px;font-size:12.5px;font-weight:600;color:var(--navy-900);flex-shrink:0}
+  .bar-track{flex:1;height:9px;background:var(--navy-100);border-radius:99px;overflow:hidden}
+  .bar-fill{height:100%;background:var(--navy-700);border-radius:99px}
+  .bar-row .v{width:40px;text-align:right;font-size:12px;font-weight:700;color:var(--ink-soft)}
+
+  /* QR */
+  .qr-box{display:inline-block;background:#fff;padding:14px;border-radius:14px;border:1px solid var(--line)}
+  canvas.qr{display:block;image-rendering:pixelated}
+
+  /* live session (projector) */
+  .projector{position:fixed;inset:0;background:var(--navy-950);color:#fff;z-index:100;display:flex;flex-direction:column}
+  .proj-top{display:flex;justify-content:space-between;align-items:center;padding:18px 28px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .proj-body{flex:1;display:flex;align-items:center;justify-content:center;gap:6vw;padding:20px;flex-wrap:wrap;overflow:auto}
+  .proj-qr{text-align:center}
+  .proj-qr .qr-shell{background:#fff;padding:26px;border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .proj-meta{margin-top:20px}
+  .proj-meta .cd{font-size:14px;color:#9db3d4}
+  .cd-bar{width:260px;height:6px;background:rgba(255,255,255,.15);border-radius:99px;margin:10px auto 0;overflow:hidden}
+  .cd-fill{height:100%;background:#fff;border-radius:99px;transition:width 1s linear}
+  .proj-roster{width:min(380px,90vw);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;max-height:70vh;display:flex;flex-direction:column}
+  .proj-roster header{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center}
+  .proj-counts{display:flex;gap:22px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .proj-counts b{font-size:26px;display:block;line-height:1.1}
+  .proj-counts span{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#9db3d4}
+  .proj-list{flex:1;overflow-y:auto;padding:8px 10px}
+  .proj-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;animation:slideIn .3s ease}
+  .proj-row:hover{background:rgba(255,255,255,.06)}
+  .proj-row .t{margin-left:auto;font-size:11.5px;color:#9db3d4}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1}}
+
+  /* scanner */
+  .scanner{position:fixed;inset:0;background:#000;z-index:100;display:flex;flex-direction:column;color:#fff}
+  .scan-view{flex:1;position:relative;background:radial-gradient(ellipse at center,#1a2a42 0%,#050b14 75%);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .scan-frame{width:min(64vw,290px);aspect-ratio:1;border-radius:20px;position:relative}
+  .scan-frame::before{content:'';position:absolute;inset:0;border-radius:20px;box-shadow:0 0 0 100vmax rgba(0,0,0,.55)}
+  .scan-corner{position:absolute;width:38px;height:38px;border:4px solid #fff;border-radius:6px}
+  .sc-tl{top:-2px;left:-2px;border-right:none;border-bottom:none}
+  .sc-tr{top:-2px;right:-2px;border-left:none;border-bottom:none}
+  .sc-bl{bottom:-2px;left:-2px;border-right:none;border-top:none}
+  .sc-br{bottom:-2px;right:-2px;border-left:none;border-top:none}
+  .scan-line{position:absolute;left:8%;right:8%;height:2.5px;background:linear-gradient(90deg,transparent,#7fd0ff,transparent);animation:scanmove 2.4s ease-in-out infinite}
+  @keyframes scanmove{0%,100%{top:12%}50%{top:86%}}
+  .scan-foot{padding:22px;text-align:center;background:#050b14}
+  .scan-result{position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;animation:fadeIn .25s ease}
+  .scan-result .big-ic{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:46px;margin-bottom:22px;background:rgba(255,255,255,.18)}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  /* timetable */
+  .tt{display:grid;grid-template-columns:64px repeat(6,1fr);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;min-width:760px}
+  .tt>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:44px;font-size:12px;padding:5px}
+  .tt .h{background:var(--navy-900);color:#fff;font-weight:700;text-align:center;padding:9px 4px;font-size:12.5px}
+  .tt .time{background:var(--navy-50);color:var(--ink-soft);font-size:10.5px;text-align:right;padding:6px 7px;font-weight:600}
+  .tt-class{background:var(--navy-100);border-left:3.5px solid var(--navy-700);border-radius:6px;padding:6px 8px;margin:2px;font-size:11px;line-height:1.35}
+  .tt-class b{display:block;color:var(--navy-900);font-size:11.5px}
+  .tt-class.lab{background:#e6f4f1;border-left-color:#0f766e}
+  .tt-holiday{background:var(--amber-bg);border-left:3.5px solid var(--amber);border-radius:6px;padding:6px 8px;margin:2px;font-size:11px}
+
+  /* modal / drawer / toast */
+  .overlay{position:fixed;inset:0;background:rgba(8,26,51,.5);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .18s ease}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:480px;max-height:88vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+  .modal header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .modal header h3{font-size:16px;color:var(--navy-900)}
+  .modal .body{padding:22px}
+  .modal footer{padding:14px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+  #toasts{position:fixed;bottom:22px;right:22px;z-index:200;display:flex;flex-direction:column;gap:10px}
+  .toast{background:var(--navy-900);color:#fff;padding:12px 18px;border-radius:10px;box-shadow:var(--shadow);font-size:13.5px;display:flex;gap:10px;align-items:center;animation:slideIn .25s ease;max-width:340px}
+  .toast.ok{border-left:4px solid #4ade80}
+  .toast.err{border-left:4px solid #f87171}
+
+  .empty{padding:44px 20px;text-align:center;color:var(--ink-soft)}
+  .empty .ic{font-size:34px;margin-bottom:10px}
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:8px 16px;font-size:13.5px}
+  .kv dt{color:var(--ink-soft);font-weight:600}
+  .kv dd{color:var(--ink)}
+  .banner-warn{background:var(--amber-bg);border:1px solid #f4dba4;color:var(--amber);border-radius:10px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start;font-size:13.5px}
+  .sync-ok{display:inline-flex;align-items:center;gap:6px;color:var(--green);font-weight:700;font-size:12.5px}
+  .switch{position:relative;width:38px;height:21px;flex-shrink:0}
+  .switch input{opacity:0;width:0;height:0}
+  .switch .sl{position:absolute;inset:0;background:#c8d2e0;border-radius:99px;transition:.15s;cursor:pointer}
+  .switch .sl::before{content:'';position:absolute;width:15px;height:15px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.15s}
+  .switch input:checked + .sl{background:var(--navy-700)}
+  .switch input:checked + .sl::before{transform:translateX(17px)}
+  .tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:18px;overflow-x:auto}
+  .tab{padding:9px 16px;font-weight:600;font-size:13.5px;color:var(--ink-soft);border:none;background:none;border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap}
+  .tab.active{color:var(--navy-800);border-bottom-color:var(--navy-800)}
+  .chart-svg{width:100%;height:auto;display:block}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft);margin-top:10px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+  .audit-diff{background:var(--navy-50);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:Consolas,monospace;font-size:12px;white-space:pre-wrap}
+  .audit-diff .del{color:var(--red)} .audit-diff .add{color:var(--green)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts"></div>
+<div id="modal-root"></div>
+
+<script>
+/* =====================================================================
+   LCC IT Student Portal — BSIT interactive prototype (single file)
+   Built from definition_data/: system-overview, module-registry,
+   roles-and-permissions, pages-and-routes, frontend-architecture,
+   database-schema. Navy blue & white institutional theme.
+   ===================================================================== */
+
+/* ------------------------- mock data ------------------------- */
+const DB = {
+  term: { year: '2026-2027', semester: 'First Semester', start: 'Aug 10, 2026', end: 'Dec 18, 2026', current: true },
+  users: {
+    STUDENT:     { name: 'Jerome D. Santos',  id: '2023-11482', sub: 'BSIT 3A · Regular', initials: 'JS', email: 'jerome.santos@lcc.edu.ph' },
+    FACULTY:     { name: 'Engr. Maria L. Reyes', id: 'EMP-0142', sub: 'Instructor I · Full-time', initials: 'MR', email: 'm.reyes@lcc.edu.ph' },
+    DEPT_ADMIN:  { name: 'Carlo T. Dizon',    id: 'EMP-0021', sub: 'IT Department Admin', initials: 'CD', email: 'c.dizon@lcc.edu.ph' },
+    SUPER_ADMIN: { name: 'System Administrator', id: 'SYS-0001', sub: 'Super Admin', initials: 'SA', email: 'sysadmin@lcc.edu.ph' }
+  },
+  subjects: [
+    { code:'IT301', title:'Web Systems & Technologies 2', units:3, type:'BOTH',    sem:'FIRST', instructor:'Engr. M. Reyes' },
+    { code:'IT302', title:'Information Assurance & Security', units:3, type:'LECTURE', sem:'FIRST', instructor:'Mr. A. Villanueva' },
+    { code:'IT303', title:'Systems Integration & Architecture', units:3, type:'BOTH', sem:'FIRST', instructor:'Ms. K. Bautista' },
+    { code:'IT304', title:'Advanced Database Systems', units:3, type:'LAB', sem:'FIRST', instructor:'Engr. M. Reyes' },
+    { code:'IT305', title:'Capstone Project 1', units:3, type:'LECTURE', sem:'FIRST', instructor:'Dr. R. Aquino' },
+    { code:'GE108', title:'Ethics', units:3, type:'LECTURE', sem:'FIRST', instructor:'Ms. P. Cruz' }
+  ],
+  studentRates: [
+    { code:'IT301', rate:96 }, { code:'IT302', rate:88 }, { code:'IT303', rate:92 },
+    { code:'IT304', rate:71 }, { code:'IT305', rate:100 }, { code:'GE108', rate:94 }
+  ],
+  myAttendance: [
+    { date:'Jul 21, 2026', subject:'IT301', session:'Lecture', time:'08:04 AM', status:'PRESENT' },
+    { date:'Jul 21, 2026', subject:'IT304', session:'Laboratory', time:'10:21 AM', status:'LATE' },
+    { date:'Jul 20, 2026', subject:'IT302', session:'Lecture', time:'—', status:'ABSENT' },
+    { date:'Jul 20, 2026', subject:'IT303', session:'Lecture', time:'01:00 PM', status:'PRESENT' },
+    { date:'Jul 18, 2026', subject:'GE108', session:'Lecture', time:'09:02 AM', status:'PRESENT' },
+    { date:'Jul 17, 2026', subject:'IT304', session:'Laboratory', time:'10:00 AM', status:'PRESENT' },
+    { date:'Jul 17, 2026', subject:'IT305', session:'Lecture', time:'03:01 PM', status:'PRESENT' },
+    { date:'Jul 16, 2026', subject:'IT302', session:'Lecture', time:'11:32 AM', status:'EXCUSED' }
+  ],
+  corrections: [
+    { id:'COR-0142', date:'Jul 20, 2026', subject:'IT302', from:'ABSENT', to:'EXCUSED', reason:'Medical appointment — clinic slip attached', status:'PENDING', reviewer:'—', note:'' },
+    { id:'COR-0137', date:'Jul 14, 2026', subject:'IT304', from:'ABSENT', to:'PRESENT', reason:'Scanner failed, instructor aware I was in class', status:'APPROVED', reviewer:'Engr. M. Reyes', note:'Confirmed present in class list.' },
+    { id:'COR-0129', date:'Jul 08, 2026', subject:'IT303', from:'LATE', to:'PRESENT', reason:'Arrived on time but queue was long', status:'REJECTED', reviewer:'Ms. K. Bautista', note:'Scan recorded 22 mins after start.' }
+  ],
+  facultyClasses: [
+    { id:'off-1', code:'IT301', title:'Web Systems & Technologies 2', section:'BSIT-3A', sched:'MWF 8:00–9:30 AM', room:'CL-204', enrolled:38, rate:93 },
+    { id:'off-2', code:'IT301', title:'Web Systems & Technologies 2', section:'BSIT-3B', sched:'MWF 9:30–11:00 AM', room:'CL-204', enrolled:41, rate:89 },
+    { id:'off-3', code:'IT304', title:'Advanced Database Systems', section:'BSIT-3A', sched:'TTh 10:00–1:00 PM', room:'CL-301', enrolled:38, rate:85 },
+    { id:'off-4', code:'IT304', title:'Advanced Database Systems', section:'BSIT-3B', sched:'TTh 1:00–4:00 PM', room:'CL-301', enrolled:41, rate:82 }
+  ],
+  roster: [
+    ['Abad, Kristine M.','2023-10221'],['Bautista, Leo R.','2023-10388'],['Cruz, Danilo S.','2023-10412'],
+    ['Dela Peña, Mika A.','2023-10577'],['Estrada, Paulo V.','2023-10689'],['Flores, Janna C.','2023-10794'],
+    ['Garcia, Miguel T.','2023-10856'],['Hernandez, Ana L.','2023-10923'],['Ignacio, Rey B.','2023-11034'],
+    ['Javier, Trisha D.','2023-11190'],['Lim, Kevin O.','2023-11267'],['Mendoza, Faith S.','2023-11345'],
+    ['Navarro, Josh P.','2023-11401'],['Ocampo, Bea R.','2023-11450'],['Santos, Jerome D.','2023-11482']
+  ],
+  atRisk: [
+    { name:'Cruz, Danilo S.', id:'2023-10412', subject:'IT304', rate:58, absences:6 },
+    { name:'Ignacio, Rey B.', id:'2023-11034', subject:'IT301', rate:64, absences:5 },
+    { name:'Lim, Kevin O.',   id:'2023-11267', subject:'IT304', rate:69, absences:4 }
+  ],
+  students: [
+    { id:'2023-10221', name:'Abad, Kristine M.',  course:'BSIT', yr:3, sec:'3A', status:'REGULAR',   synced:true },
+    { id:'2023-10388', name:'Bautista, Leo R.',   course:'BSIT', yr:3, sec:'3A', status:'REGULAR',   synced:true },
+    { id:'2023-10412', name:'Cruz, Danilo S.',    course:'BSIT', yr:3, sec:'3A', status:'IRREGULAR', synced:true },
+    { id:'2023-10577', name:'Dela Peña, Mika A.', course:'BSIT', yr:3, sec:'3A', status:'REGULAR',   synced:true },
+    { id:'2024-20115', name:'Enriquez, Sofia B.', course:'BSIT', yr:2, sec:'2B', status:'TRANSFEREE',synced:false },
+    { id:'2023-10689', name:'Estrada, Paulo V.',  course:'BSIT', yr:3, sec:'3B', status:'REGULAR',   synced:true },
+    { id:'2025-30412', name:'Fajardo, Nico D.',   course:'BSIT', yr:1, sec:'1A', status:'REGULAR',   synced:true },
+    { id:'2023-11482', name:'Santos, Jerome D.',  course:'BSIT', yr:3, sec:'3A', status:'REGULAR',   synced:true }
+  ],
+  facultyList: [
+    { id:'EMP-0142', name:'Reyes, Maria L.',      pos:'Instructor I',      type:'FULL_TIME', classes:4, status:'ACTIVE' },
+    { id:'EMP-0156', name:'Villanueva, Arnel P.', pos:'Instructor II',     type:'FULL_TIME', classes:5, status:'ACTIVE' },
+    { id:'EMP-0171', name:'Bautista, Karen J.',   pos:'Asst. Professor I', type:'FULL_TIME', classes:4, status:'ACTIVE' },
+    { id:'EMP-0183', name:'Aquino, Rodel S.',     pos:'Professor II',      type:'PART_TIME', classes:2, status:'ACTIVE' },
+    { id:'EMP-0190', name:'Cruz, Patricia M.',    pos:'Instructor I',      type:'PART_TIME', classes:3, status:'ON_LEAVE' }
+  ],
+  sections: [
+    { name:'BSIT-1A', yr:1, cap:45, count:44, adviser:'Ms. P. Cruz' },
+    { name:'BSIT-1B', yr:1, cap:45, count:42, adviser:'Mr. A. Villanueva' },
+    { name:'BSIT-2A', yr:2, cap:45, count:40, adviser:'Ms. K. Bautista' },
+    { name:'BSIT-2B', yr:2, cap:45, count:39, adviser:'Engr. M. Reyes' },
+    { name:'BSIT-3A', yr:3, cap:40, count:38, adviser:'Engr. M. Reyes' },
+    { name:'BSIT-3B', yr:3, cap:45, count:41, adviser:'Dr. R. Aquino' },
+    { name:'BSIT-4A', yr:4, cap:40, count:36, adviser:'Dr. R. Aquino' }
+  ],
+  calendar: [
+    { date:'Jul 27, 2026', type:'HOLIDAY',      title:'INC Anniversary (Regular Holiday)', affects:'All sections', src:'OSAS' },
+    { date:'Jul 30, 2026', type:'SUSPENSION',   title:'Typhoon signal #2 — classes suspended', affects:'All sections', src:'LOCAL' },
+    { date:'Aug 02, 2026', type:'MAKEUP_CLASS', title:'IT304 makeup lab (for Jul 30)', affects:'BSIT-3A · CL-301 · 9:00–12:00', src:'LOCAL' },
+    { date:'Aug 21, 2026', type:'HOLIDAY',      title:'Ninoy Aquino Day', affects:'All sections', src:'OSAS' },
+    { date:'Aug 25, 2026', type:'SPECIAL_EVENT',title:'IT Week Opening — QR event session', affects:'All BSIT sections · Gymnasium', src:'LOCAL' }
+  ],
+  openSessions: [
+    { id:'ses-981', class:'IT301 · BSIT-3A', faculty:'Engr. M. Reyes', room:'CL-204', started:'8:00 AM', present:31, late:3, enrolled:38 },
+    { id:'ses-982', class:'IT302 · BSIT-3B', faculty:'Mr. A. Villanueva', room:'CL-105', started:'8:30 AM', present:35, late:1, enrolled:41 },
+    { id:'ses-983', class:'GE108 · BSIT-1A', faculty:'Ms. P. Cruz', room:'RM-310', started:'9:00 AM', present:40, late:2, enrolled:44 }
+  ],
+  auditLogs: [
+    { at:'Jul 21, 2026 10:42', actor:'Engr. M. Reyes', action:'attendance.override', entity:'attendance_records', detail:'IT304 · Lim, Kevin — LATE → PRESENT', reason:'Scanner queue delay verified', before:'"status": "LATE"', after:'"status": "PRESENT"' },
+    { at:'Jul 21, 2026 09:15', actor:'Carlo T. Dizon', action:'correction.approve', entity:'attendance_corrections', detail:'COR-0137 approved', before:'"status": "PENDING"', after:'"status": "APPROVED"' },
+    { at:'Jul 21, 2026 07:58', actor:'system', action:'osas.sync', entity:'osas_sync_logs', detail:'Nightly student sync — 1,987 processed, 3 updated', before:'', after:'"status": "SUCCESS"' },
+    { at:'Jul 20, 2026 16:30', actor:'System Administrator', action:'settings.update', entity:'settings', detail:'QR rotation interval changed', before:'"qr_rotation_seconds": 90', after:'"qr_rotation_seconds": 60' },
+    { at:'Jul 20, 2026 14:12', actor:'Carlo T. Dizon', action:'student.import', entity:'students', detail:'CSV import — 12 rows, 11 ok, 1 skipped (duplicate)', before:'', after:'"imported": 11' },
+    { at:'Jul 20, 2026 08:02', actor:'Engr. M. Reyes', action:'session.open', entity:'class_sessions', detail:'IT301 · BSIT-3A session opened (dynamic QR)', before:'"status": "SCHEDULED"', after:'"status": "OPEN"' }
+  ],
+  notifications: [
+    { ic:'✅', title:'Correction request approved', body:'Your request COR-0137 (IT304, Jul 14) was approved by Engr. M. Reyes.', time:'2h ago', unread:true },
+    { ic:'⚠️', title:'Attendance warning — IT304', body:'Your attendance in Advanced Database Systems dropped to 71%. Threshold is 75%.', time:'5h ago', unread:true },
+    { ic:'📅', title:'Class suspended — Jul 30', body:'All classes suspended due to Typhoon signal #2. A makeup lab was scheduled for Aug 02.', time:'1d ago', unread:true },
+    { ic:'📢', title:'OSAS profile synced', body:'Your student profile was refreshed from OSAS (section, status, photo).', time:'2d ago', unread:false },
+    { ic:'🔐', title:'New device login', body:'Chrome on Windows · Jul 18, 9:41 AM · If this was not you, revoke the session in Profile.', time:'3d ago', unread:false }
+  ],
+  syncLogs: [
+    { at:'Jul 21, 02:00', type:'STUDENTS',  trigger:'CRON',   status:'SUCCESS', n:1987 },
+    { at:'Jul 21, 02:10', type:'SCHEDULES', trigger:'CRON',   status:'SUCCESS', n:214 },
+    { at:'Jul 21, 02:14', type:'CALENDAR',  trigger:'CRON',   status:'SUCCESS', n:9 },
+    { at:'Jul 20, 15:22', type:'STUDENTS',  trigger:'MANUAL', status:'PARTIAL', n:1985 }
+  ]
+};
+
+/* ------------------------- state ------------------------- */
+const S = {
+  role: null,           // STUDENT | FACULTY | DEPT_ADMIN | SUPER_ADMIN
+  unread: 3,
+  timers: [],
+  liveRows: [],
+};
+function user(){ return DB.users[S.role] || null; }
+
+/* ------------------------- utilities ------------------------- */
+const $ = s => document.querySelector(s);
+const app = () => $('#app');
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg, kind='ok'){
+  const t = document.createElement('div');
+  t.className = 'toast ' + kind;
+  t.innerHTML = (kind==='ok' ? '✔️ ' : '⚠️ ') + esc(msg);
+  $('#toasts').appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='.3s'; setTimeout(()=>t.remove(), 320); }, 3400);
+}
+function clearTimers(){ S.timers.forEach(t=>clearInterval(t)); S.timers = []; }
+function badge(status){
+  const map = { PRESENT:['b-present','Present'], LATE:['b-late','Late'], ABSENT:['b-absent','Absent'], EXCUSED:['b-excused','Excused'],
+    PENDING:['b-pending','Pending'], APPROVED:['b-approved','Approved'], REJECTED:['b-rejected','Rejected'],
+    OPEN:['b-open','● Open'], REGULAR:['b-navy','Regular'], IRREGULAR:['b-late','Irregular'], TRANSFEREE:['b-excused','Transferee'],
+    ACTIVE:['b-present','Active'], ON_LEAVE:['b-late','On leave'], SUCCESS:['b-present','Success'], PARTIAL:['b-late','Partial'], FAILED:['b-absent','Failed'],
+    HOLIDAY:['b-absent','Holiday'], SUSPENSION:['b-late','Suspension'], MAKEUP_CLASS:['b-excused','Makeup class'], SPECIAL_EVENT:['b-navy','Special event'],
+    FULL_TIME:['b-navy','Full-time'], PART_TIME:['b-gray','Part-time'], CRON:['b-gray','Cron'], MANUAL:['b-navy','Manual'] };
+  const [cls, label] = map[status] || ['b-gray', status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function ringSVG(pct, color='#19407c', size=120, sw=11){
+  const r = (size - sw) / 2, c = 2 * Math.PI * r, off = c * (1 - pct/100);
+  return `<div class="ring" style="width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#e8eef7" stroke-width="${sw}"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"
+        stroke-dasharray="${c}" stroke-dashoffset="${off}"/>
+    </svg>
+    <div class="pct">${pct}%<small>overall</small></div>
+  </div>`;
+}
+/* fake QR: deterministic-random module grid with finder patterns */
+function drawQR(canvas, seed){
+  const n = 25, px = Math.floor(canvas.width / n);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  let s = seed >>> 0;
+  const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  ctx.fillStyle = '#0b2447';
+  const finder = (fx,fy) => {
+    ctx.fillRect(fx*px, fy*px, 7*px, 7*px);
+    ctx.fillStyle='#fff'; ctx.fillRect((fx+1)*px,(fy+1)*px,5*px,5*px);
+    ctx.fillStyle='#0b2447'; ctx.fillRect((fx+2)*px,(fy+2)*px,3*px,3*px);
+  };
+  for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+    const inFinder = (x<8&&y<8)||(x>n-9&&y<8)||(x<8&&y>n-9);
+    if(!inFinder && rnd() > .52) ctx.fillRect(x*px, y*px, px, px);
+  }
+  finder(0,0); finder(n-7,0); finder(0,n-7);
+}
+function qrBlock(id, size=180){
+  return `<div class="qr-box"><canvas class="qr" id="${id}" width="${size}" height="${size}"></canvas></div>`;
+}
+function sparkBars(data, w=460, h=120, color='#19407c'){
+  const max = Math.max(...data.map(d=>d.v));
+  const bw = w / data.length;
+  let bars='', labels='';
+  data.forEach((d,i)=>{
+    const bh = Math.max(4, (d.v/max) * (h-30));
+    bars += `<rect x="${(i*bw+bw*0.18).toFixed(1)}" y="${(h-22-bh).toFixed(1)}" width="${(bw*0.64).toFixed(1)}" height="${bh.toFixed(1)}" rx="3.5" fill="${d.hi?color:'#c3d2e8'}"/>`;
+    labels += `<text x="${(i*bw+bw/2).toFixed(1)}" y="${h-7}" font-size="10" fill="#5a6779" text-anchor="middle">${d.l}</text>`;
+  });
+  return `<svg class="chart-svg" viewBox="0 0 ${w} ${h}">${bars}${labels}</svg>`;
+}
+function lineChart(points, w=560, h=150, color='#19407c'){
+  const min = Math.min(...points)-4, max = Math.max(...points)+2;
+  const step = w / (points.length - 1);
+  const y = v => 14 + (h-38) * (1 - (v-min)/(max-min));
+  const pts = points.map((v,i)=>`${(i*step).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area = `0,${h-24} ${pts} ${w},${h-24}`;
+  return `<svg class="chart-svg" viewBox="0 0 ${w} ${h}">
+    <polygon points="${area}" fill="rgba(25,64,124,.10)"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${points.map((v,i)=>`<circle cx="${(i*step).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.2" fill="#fff" stroke="${color}" stroke-width="2"/>`).join('')}
+  </svg>`;
+}
+function modal(title, bodyHTML, actions){
+  const root = $('#modal-root');
+  root.innerHTML = `<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <header><h3>${title}</h3><button class="icon-btn" onclick="closeModal()">✕</button></header>
+      <div class="body">${bodyHTML}</div>
+      <footer>${actions}</footer>
+    </div></div>`;
+}
+function closeModal(){ $('#modal-root').innerHTML = ''; }
+
+/* ------------------------- router ------------------------- */
+const routes = {};
+function route(path, fn){ routes[path] = fn; }
+function nav(hash){ location.hash = hash; }
+function currentPath(){
+  const h = location.hash.replace(/^#/, '') || '/';
+  return h;
+}
+function render(){
+  clearTimers();
+  document.body.classList.remove('side-open');
+  let path = currentPath();
+  // guards
+  if(path.startsWith('/app') && !S.role){ location.hash = '/login'; return; }
+  let fn = routes[path];
+  let param = null;
+  if(!fn){
+    // dynamic segments
+    const m1 = path.match(/^\/app\/classes\/(.+)$/);
+    const m2 = path.match(/^\/app\/sessions\/(.+)\/live$/);
+    const m3 = path.match(/^\/app\/students\/(.+)$/);
+    if(m2){ fn = routes['/app/sessions/:id/live']; param = m2[1]; }
+    else if(m1){ fn = routes['/app/classes/:id']; param = m1[1]; }
+    else if(m3){ fn = routes['/app/students/:id']; param = m3[1]; }
+  }
+  if(!fn){ fn = routes['/404']; }
+  fn(param);
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange', render);
+
+/* ------------------------- login / logout ------------------------- */
+function loginAs(role){
+  S.role = role;
+  S.unread = role === 'STUDENT' ? 3 : 2;
+  toast(`Signed in as ${DB.users[role].name}`);
+  nav('/app/dashboard');
+}
+function logout(){
+  S.role = null;
+  toast('You have been signed out.');
+  nav('/login');
+}
+function switchRole(role){ if(role){ loginAs(role); } }
+
+/* =====================================================================
+   PUBLIC PAGES
+   ===================================================================== */
+route('/', () => {
+  app().innerHTML = `
+  <div class="landing">
+    <nav class="landing-nav">
+      <div class="brand"><span class="logo">IT</span> LCC IT Student Portal</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" style="background:#fff;color:var(--navy-900)" onclick="nav('/login')">Sign in</button>
+      </div>
+    </nav>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">BSIT Department · Legacy IT Student Portal</span>
+        <h1>Attendance in seconds.<br>One scan, zero paperwork.</h1>
+        <p>Faculty project a dynamic QR code that refreshes every minute. Students scan with their phone and are marked Present or Late instantly — with live monitoring, correction workflows, and exportable reports for the whole department.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-primary" style="background:#fff;color:var(--navy-900);padding:12px 22px" onclick="nav('/login')">Sign in to the portal →</button>
+          <button class="btn btn-outline" style="border-color:rgba(255,255,255,.5);color:#fff;background:transparent;padding:12px 22px" onclick="document.getElementById('feat').scrollIntoView({behavior:'smooth'})">Learn more</button>
+        </div>
+      </div>
+      <div class="hero-qr">
+        ${qrBlock('hero-qr', 190)}
+        <div class="small muted">Dynamic QR · regenerates every 60s<br><b style="color:var(--navy-900)">IT301 — Web Systems &amp; Technologies 2</b></div>
+      </div>
+    </section>
+    <div class="feat-row" id="feat">
+      <div class="feat"><div class="ic">⚡</div><b>Sub-5-second capture</b><span>Encrypted, time-limited QR codes with server-side validation and duplicate prevention.</span></div>
+      <div class="feat"><div class="ic">📡</div><b>Live monitoring</b><span>Faculty see students appear on the roster in real time as they scan in.</span></div>
+      <div class="feat"><div class="ic">🎓</div><b>OSAS single sign-on</b><span>Students use university credentials — active students only, no duplicate accounts.</span></div>
+      <div class="feat"><div class="ic">📊</div><b>Exportable reports</b><span>Daily to semester reports per student, subject, or instructor — CSV, Excel, PDF.</span></div>
+    </div>
+    <footer class="landing-foot">
+      <span>© 2026 LCC Information Technology Department · BSIT</span>
+      <span>Phase 1 — QR Attendance · v1.0 prototype</span>
+    </footer>
+  </div>`;
+  drawQR($('#hero-qr'), 20260721);
+  const t = setInterval(()=> { const c=$('#hero-qr'); if(c) drawQR(c, Date.now()); }, 4000);
+  S.timers.push(t);
+});
+
+route('/login', () => {
+  app().innerHTML = `
+  <div class="login-wrap">
+    <div class="login-side">
+      <div class="brand"><span class="logo">IT</span> LCC IT Student Portal</div>
+      <div>
+        <h2>Legacy IT<br>Student Portal</h2>
+        <p>QR-based attendance for the BSIT department. Students sign in with their university (OSAS) credentials; faculty and staff use portal accounts issued by the IT department.</p>
+      </div>
+      <div class="small" style="color:#8fa5c6">A.Y. ${DB.term.year} · ${DB.term.semester} · Asia/Manila</div>
+    </div>
+    <div class="login-main">
+      <div class="login-box">
+        <h1>Sign in</h1>
+        <p>One form for everyone — your role is detected automatically.</p>
+        <form onsubmit="event.preventDefault(); loginAs('STUDENT')">
+          <div class="field">
+            <label>Student ID or Email</label>
+            <input placeholder="2023-11482 or name@lcc.edu.ph" required>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" placeholder="••••••••" required>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 18px">
+            <label class="small muted" style="display:flex;gap:7px;align-items:center"><input type="checkbox" style="width:auto"> Remember this device</label>
+            <a class="small" href="#/forgot-password">Forgot password?</a>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Sign in</button>
+        </form>
+        <p class="small muted" style="margin-top:14px">Students: use your <b>university (OSAS) credentials</b>. Inactive or alumni accounts cannot sign in. Five failed attempts locks the account for 15 minutes.</p>
+        <div class="demo-roles">
+          <p>Prototype — enter a demo role</p>
+          <div class="demo-grid">
+            <button onclick="loginAs('STUDENT')">🎓 Student<small>Jerome Santos · BSIT 3A</small></button>
+            <button onclick="loginAs('FACULTY')">🧑‍🏫 Faculty<small>Engr. Maria Reyes</small></button>
+            <button onclick="loginAs('DEPT_ADMIN')">🗂️ Dept Admin<small>Carlo Dizon</small></button>
+            <button onclick="loginAs('SUPER_ADMIN')">🛡️ Super Admin<small>System owner</small></button>
+          </div>
+        </div>
+        <p class="small" style="margin-top:18px"><a href="#/">← Back to landing page</a></p>
+      </div>
+    </div>
+  </div>`;
+});
+
+route('/forgot-password', () => {
+  app().innerHTML = `
+  <div class="login-main" style="min-height:100vh">
+    <div class="login-box">
+      <h1>Forgot password</h1>
+      <p>For <b>staff portal accounts</b> only. Students: password issues are handled by the OSAS office — the portal never stores student passwords.</p>
+      <form onsubmit="event.preventDefault(); toast('If that account exists, a reset link has been emailed.'); nav('/login')">
+        <div class="field"><label>Staff email</label><input type="email" placeholder="name@lcc.edu.ph" required></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Send reset link</button>
+      </form>
+      <p class="small" style="margin-top:16px"><a href="#/login">← Back to sign in</a></p>
+    </div>
+  </div>`;
+});
+
+/* =====================================================================
+   APP SHELL
+   ===================================================================== */
+const NAVS = {
+  STUDENT: [
+    ['Main'],
+    ['/app/dashboard','🏠','Dashboard'],
+    ['/app/scan','📷','Scan Attendance'],
+    ['/app/schedule','🗓️','My Schedule'],
+    ['Records'],
+    ['/app/attendance','📋','My Attendance'],
+    ['/app/attendance/corrections','✏️','My Corrections'],
+    ['Account'],
+    ['/app/notifications','🔔','Notifications', () => S.unread],
+    ['/app/profile','👤','Profile'],
+  ],
+  FACULTY: [
+    ['Main'],
+    ['/app/dashboard','🏠','Dashboard'],
+    ['/app/classes','📚','My Classes'],
+    ['Attendance'],
+    ['/app/attendance/records','📋','Attendance Records'],
+    ['/app/attendance/corrections','✅','Correction Requests', () => 2],
+    ['/app/reports','📊','Reports'],
+    ['Account'],
+    ['/app/notifications','🔔','Notifications', () => S.unread],
+    ['/app/profile','👤','Profile'],
+  ],
+  DEPT_ADMIN: [
+    ['Main'],
+    ['/app/dashboard','🏠','Dashboard'],
+    ['/app/monitoring','📡','Live Monitoring'],
+    ['People'],
+    ['/app/students','🎓','Students'],
+    ['/app/faculty','🧑‍🏫','Faculty'],
+    ['Academics'],
+    ['/app/subjects','📘','Subjects'],
+    ['/app/sections','🧩','Sections'],
+    ['/app/offerings','🗂️','Class Offerings'],
+    ['/app/enrollments','📝','Enrollments'],
+    ['/app/calendar','🗓️','Academic Calendar'],
+    ['Operations'],
+    ['/app/corrections','✅','Correction Approvals', () => 4],
+    ['/app/reports','📊','Department Reports'],
+    ['Account'],
+    ['/app/notifications','🔔','Notifications', () => S.unread],
+    ['/app/profile','👤','Profile'],
+  ],
+};
+NAVS.SUPER_ADMIN = [
+  ...NAVS.DEPT_ADMIN.slice(0, NAVS.DEPT_ADMIN.length - 3),
+  ['System'],
+  ['/app/users','👥','User Management'],
+  ['/app/terms','🎯','Academic Terms'],
+  ['/app/settings','⚙️','System Settings'],
+  ['/app/audit-logs','🧾','Audit Logs'],
+  ['Account'],
+  ['/app/notifications','🔔','Notifications', () => S.unread],
+  ['/app/profile','👤','Profile'],
+];
+
+function shell(inner, opts = {}){
+  const u = user();
+  const path = currentPath();
+  const items = (NAVS[S.role] || []).map(it => {
+    if(it.length === 1) return `<div class="nav-group">${it[0]}</div>`;
+    const [href, ic, label, countFn] = it;
+    const active = path === href || (href !== '/app/dashboard' && path.startsWith(href + '/'));
+    const count = countFn ? countFn() : 0;
+    return `<a class="nav-item ${active?'active':''}" href="#${href}">
+      <span class="ic">${ic}</span>${label}${count ? `<span class="count">${count}</span>` : ''}</a>`;
+  }).join('');
+  const crumbs = opts.crumbs ? `<div class="breadcrumbs">${opts.crumbs}</div>` : '';
+  const head = opts.title ? `${crumbs}<div class="page-head">
+      <div><h1>${opts.title}</h1>${opts.sub ? `<div class="sub">${opts.sub}</div>` : ''}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${opts.actions || ''}</div>
+    </div>` : '';
+  app().innerHTML = `
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="logo">IT</span><div>LCC IT Portal<div style="font-size:10.5px;font-weight:400;color:#7e93b5">BSIT Department</div></div></div>
+      <div class="nav-scroll">${items}</div>
+      <div class="side-foot">A.Y. ${DB.term.year} · ${DB.term.semester}<br>Phase 1 — QR Attendance</div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <button class="icon-btn hamb" onclick="document.body.classList.toggle('side-open')">☰</button>
+        <div class="search"><span class="ic">🔎</span><input placeholder="Search students, classes, records…" onkeydown="if(event.key==='Enter'){toast('Global search is illustrative in this prototype.')}"></div>
+        <div style="flex:1"></div>
+        <select class="filter-input" style="min-width:0" title="Prototype: switch role" onchange="switchRole(this.value)">
+          <option value="">Switch role…</option>
+          <option value="STUDENT">Student</option>
+          <option value="FACULTY">Faculty</option>
+          <option value="DEPT_ADMIN">Dept Admin</option>
+          <option value="SUPER_ADMIN">Super Admin</option>
+        </select>
+        <button class="icon-btn" title="Notifications" onclick="nav('/app/notifications')">🔔${S.unread?`<span class="dot">${S.unread}</span>`:''}</button>
+        <div class="role-pill">
+          <span class="avatar">${u.initials}</span>
+          <div><b>${u.name}</b><small>${u.sub}</small></div>
+        </div>
+        <button class="icon-btn" title="Sign out" onclick="logout()">⎋</button>
+      </div>
+      <div class="content">${head}${inner}</div>
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
+   DASHBOARDS (role-aware /app/dashboard)
+   ===================================================================== */
+route('/app/dashboard', () => {
+  if(S.role === 'STUDENT') return studentDashboard();
+  if(S.role === 'FACULTY') return facultyDashboard();
+  return adminDashboard();
+});
+
+function studentDashboard(){
+  const bars = DB.studentRates.map(r => `
+    <div class="bar-row"><span class="lbl">${r.code}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${r.rate}%;background:${r.rate<75?'var(--red)':r.rate<85?'var(--amber)':'var(--navy-700)'}"></div></div>
+      <span class="v">${r.rate}%</span></div>`).join('');
+  const recent = DB.myAttendance.slice(0,5).map(a => `
+    <tr><td><b>${a.subject}</b><div class="small muted">${a.session}</div></td><td>${a.date}</td><td>${a.time}</td><td>${badge(a.status)}</td></tr>`).join('');
+  shell(`
+    <div class="banner-warn" style="margin-bottom:18px">⚠️ <div><b>At-risk warning:</b> your attendance in <b>IT304 — Advanced Database Systems</b> is <b>71%</b>, below the 75% threshold. Talk to your instructor or file corrections for disputed records.</div></div>
+    <div class="grid cols-3" style="margin-bottom:16px">
+      <div class="card card-pad" style="grid-column:span 1">
+        <h3>Next class</h3>
+        <div style="font-size:19px;font-weight:800;color:var(--navy-900)">IT303 — Systems Integration</div>
+        <div class="muted" style="margin:4px 0 12px">Room CL-208 · 1:00 – 2:30 PM · Ms. K. Bautista</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="badge b-navy" style="font-size:13px;padding:6px 14px">Starts in 00:47:12</span>
+          <button class="btn btn-primary btn-sm" onclick="nav('/app/scan')">📷 Open scanner</button>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <h3>Overall attendance</h3>
+        <div class="ring-wrap">${ringSVG(90)}
+          <div class="small muted">Semester to date across 6 subjects.<br><span class="sync-ok">✔ Synced with OSAS</span></div>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <h3>This week</h3>
+        ${sparkBars([{l:'Mon',v:4,hi:1},{l:'Tue',v:3},{l:'Wed',v:4,hi:1},{l:'Thu',v:3},{l:'Fri',v:4},{l:'Sat',v:1}],300,118)}
+        <div class="small muted">Sessions attended per day</div>
+      </div>
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:8px;display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Per-subject rates</h3><a class="small" href="#/app/attendance">View all →</a></div>
+        <div class="card-pad" style="padding-top:6px">${bars}</div>
+      </div>
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:8px;display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Recent activity</h3><a class="small" href="#/app/attendance">History →</a></div>
+        <table><thead><tr><th>Subject</th><th>Date</th><th>Time in</th><th>Status</th></tr></thead><tbody>${recent}</tbody></table>
+      </div>
+    </div>`,
+  { title: `Good morning, Jerome 👋`, sub: `Monday, July 21, 2026 · A.Y. ${DB.term.year}, ${DB.term.semester}` });
+}
+
+function facultyDashboard(){
+  const today = [
+    { code:'IT301', sec:'BSIT-3A', time:'8:00–9:30 AM', room:'CL-204', state:'open' },
+    { code:'IT301', sec:'BSIT-3B', time:'9:30–11:00 AM', room:'CL-204', state:'next' },
+    { code:'IT304', sec:'BSIT-3A', time:'1:00–4:00 PM', room:'CL-301', state:'later' },
+  ];
+  const rows = today.map(c => `
+    <tr>
+      <td><b>${c.code}</b> · ${c.sec}<div class="small muted">${c.room}</div></td>
+      <td>${c.time}</td>
+      <td>${c.state==='open' ? badge('OPEN') : `<span class="badge b-gray">Scheduled</span>`}</td>
+      <td style="text-align:right">${c.state==='open'
+          ? `<button class="btn btn-primary btn-sm" onclick="nav('/app/sessions/ses-981/live')">📡 Open live view</button>`
+          : `<button class="btn btn-outline btn-sm" onclick="startSession('${c.code} · ${c.sec}')">▶ Start session</button>`}</td>
+    </tr>`).join('');
+  const risk = DB.atRisk.map(r => `
+    <tr><td><b>${r.name}</b><div class="small muted mono">${r.id}</div></td><td>${r.subject}</td>
+      <td><span class="badge ${r.rate<60?'b-absent':'b-late'}">${r.rate}%</span></td><td>${r.absences}</td></tr>`).join('');
+  shell(`
+    <div class="grid cols-4" style="margin-bottom:16px">
+      <div class="card stat"><div class="ic">📚</div><div><div class="val">4</div><div class="lbl">Classes this term</div></div></div>
+      <div class="card stat"><div class="ic">📡</div><div><div class="val">1</div><div class="lbl">Active session now</div></div><span class="trend up">34/38 in</span></div>
+      <div class="card stat"><div class="ic">📈</div><div><div class="val">87%</div><div class="lbl">Weekly class rate</div></div><span class="trend up">▲ 2.4%</span></div>
+      <div class="card stat"><div class="ic">✏️</div><div><div class="val">2</div><div class="lbl">Pending corrections</div></div></div>
+    </div>
+    <div class="grid cols-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:6px"><h3 style="margin:0">Today's classes — Mon, Jul 21</h3></div>
+        <table><thead><tr><th>Class</th><th>Schedule</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      </div>
+      <div class="card card-pad">
+        <h3>Class attendance trend (weekly avg)</h3>
+        ${lineChart([84,86,83,88,85,89,87,91,87])}
+        <div class="legend"><span><i style="background:#19407c"></i>All assigned classes · last 9 weeks</span></div>
+      </div>
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:6px;display:flex;justify-content:space-between"><h3 style="margin:0">At-risk students (&lt; 75%)</h3><a class="small" href="#/app/reports">Report →</a></div>
+        <table><thead><tr><th>Student</th><th>Subject</th><th>Rate</th><th>Absences</th></tr></thead><tbody>${risk}</tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:6px;display:flex;justify-content:space-between"><h3 style="margin:0">Correction requests</h3><a class="small" href="#/app/attendance/corrections">Queue →</a></div>
+        <table><thead><tr><th>Request</th><th>Change</th><th>Status</th></tr></thead><tbody>
+          <tr><td><b>Santos, Jerome</b><div class="small muted">IT304 · Jul 20</div></td><td class="small">Absent → Excused</td><td>${badge('PENDING')}</td></tr>
+          <tr><td><b>Flores, Janna</b><div class="small muted">IT301 · Jul 18</div></td><td class="small">Late → Present</td><td>${badge('PENDING')}</td></tr>
+        </tbody></table>
+      </div>
+    </div>`,
+  { title: 'Faculty Dashboard', sub: `Welcome back, Engr. Reyes · Monday, July 21, 2026` });
+}
+
+function adminDashboard(){
+  const low = [
+    ['IT304 · BSIT-3B','Engr. M. Reyes','82%'],['IT302 · BSIT-3A','Mr. A. Villanueva','79%'],['IT303 · BSIT-2B','Ms. K. Bautista','76%']
+  ].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td><span class="badge b-late">${r[2]}</span></td></tr>`).join('');
+  const audit = DB.auditLogs.slice(0,4).map(l => `
+    <tr><td class="small muted" style="white-space:nowrap">${l.at.split(' ').slice(1).join(' ')}</td>
+    <td><b class="small">${l.actor}</b><div class="small muted">${l.detail}</div></td>
+    <td><span class="badge b-gray mono" style="font-weight:600">${l.action}</span></td></tr>`).join('');
+  shell(`
+    <div class="grid cols-4" style="margin-bottom:16px">
+      <div class="card stat"><div class="ic">📈</div><div><div class="val">91.2%</div><div class="lbl">Today's dept rate</div></div><span class="trend up">▲ 1.8%</span></div>
+      <div class="card stat"><div class="ic">📡</div><div><div class="val">3</div><div class="lbl">Active sessions now</div></div></div>
+      <div class="card stat"><div class="ic">🎓</div><div><div class="val">1,987</div><div class="lbl">Active students</div></div></div>
+      <div class="card stat"><div class="ic">🧑‍🏫</div><div><div class="val">24</div><div class="lbl">Faculty members</div></div></div>
+    </div>
+    <div class="grid cols-2" style="margin-bottom:16px">
+      <div class="card card-pad">
+        <h3>Term attendance trend</h3>
+        ${lineChart([88,90,87,91,89,92,90,93,91])}
+        <div class="legend"><span><i style="background:#19407c"></i>Department weekly average</span></div>
+      </div>
+      <div class="card card-pad">
+        <h3>Section comparison (this week)</h3>
+        ${sparkBars([{l:'1A',v:94},{l:'1B',v:91},{l:'2A',v:89},{l:'2B',v:86},{l:'3A',v:93,hi:1},{l:'3B',v:84},{l:'4A',v:92}],460,140)}
+      </div>
+    </div>
+    <div class="grid cols-3">
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:6px"><h3 style="margin:0">Low-attendance classes</h3></div>
+        <table><thead><tr><th>Class</th><th>Instructor</th><th>Rate</th></tr></thead><tbody>${low}</tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:6px;display:flex;justify-content:space-between"><h3 style="margin:0">Recent audit feed</h3>${S.role==='SUPER_ADMIN'?'<a class="small" href="#/app/audit-logs">All logs →</a>':''}</div>
+        <table><tbody>${audit}</tbody></table>
+      </div>
+      <div class="card card-pad">
+        <h3>OSAS sync status</h3>
+        <div class="kv" style="grid-template-columns:120px 1fr">
+          <dt>Connection</dt><dd><span class="sync-ok">● Healthy</span></dd>
+          <dt>Students</dt><dd>Jul 21, 02:00 · <b>1,987</b> processed</dd>
+          <dt>Schedules</dt><dd>Jul 21, 02:10 · <b>214</b> processed</dd>
+          <dt>Calendar</dt><dd>Jul 21, 02:14 · <b>9</b> exceptions</dd>
+        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="toast('Manual OSAS sync queued — you will be notified when it completes.')">↻ Trigger manual sync</button>
+      </div>
+    </div>`,
+  { title: S.role === 'SUPER_ADMIN' ? 'System Dashboard' : 'Department Dashboard',
+    sub: `IT Department overview · Monday, July 21, 2026`,
+    actions: `<button class="btn btn-outline" onclick="nav('/app/monitoring')">📡 Live monitoring</button>
+              <button class="btn btn-primary" onclick="nav('/app/reports')">📊 Reports</button>` });
+}
+
+/* =====================================================================
+   STUDENT PAGES
+   ===================================================================== */
+route('/app/schedule', () => {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+  const slots = ['7:00','8:00','9:00','10:00','11:00','12:00','1:00','2:00','3:00','4:00'];
+  // grid cells keyed "day-slotIdx"
+  const cells = {
+    'Mon-1':{c:'IT301',r:'CL-204',t:'8:00–9:30'}, 'Wed-1':{c:'IT301',r:'CL-204',t:'8:00–9:30'}, 'Fri-1':{c:'IT301',r:'CL-204',t:'8:00–9:30'},
+    'Tue-3':{c:'IT304',r:'CL-301',t:'10:00–1:00',lab:1,span:3}, 'Thu-3':{c:'IT304',r:'CL-301',t:'10:00–1:00',lab:1,span:3},
+    'Mon-6':{c:'IT303',r:'CL-208',t:'1:00–2:30'}, 'Wed-6':{c:'IT303',r:'CL-208',t:'1:00–2:30'},
+    'Tue-1':{c:'IT302',r:'RM-115',t:'8:30–10:00'}, 'Thu-1':{c:'IT302',r:'RM-115',t:'8:30–10:00'},
+    'Fri-2':{c:'GE108',r:'RM-310',t:'9:00–10:30'},
+    'Mon-8':{c:'IT305',r:'CL-208',t:'3:00–4:30'}, 'Thu-8':{c:'IT305',r:'CL-208',t:'3:00–4:30'},
+  };
+  let grid = `<div class="h"></div>` + days.map(d=>`<div class="h">${d}</div>`).join('');
+  slots.forEach((s,si)=>{
+    grid += `<div class="time">${s}</div>`;
+    days.forEach(d=>{
+      const cell = cells[`${d}-${si}`];
+      if(cell){
+        grid += `<div>${`<div class="tt-class ${cell.lab?'lab':''}"><b>${cell.c}</b>${cell.t}<br>${cell.r}${cell.lab?' · Lab':''}</div>`}</div>`;
+      } else if(d==='Sat' && si===2){
+        grid += `<div><div class="tt-holiday">⚠️ Jul 30 (Thu): classes suspended — typhoon. Makeup lab Aug 02.</div></div>`;
+      } else grid += `<div></div>`;
+    });
+  });
+  shell(`
+    <div class="toolbar">
+      <span class="badge b-navy">Week of Jul 20 – 25, 2026</span>
+      <span class="sync-ok">✔ Imported from OSAS · Jul 21, 02:10</span>
+      <div style="flex:1"></div>
+      <span class="small muted">🟦 Lecture · 🟩 Laboratory · Badges mark calendar exceptions</span>
+    </div>
+    <div style="overflow-x:auto"><div class="tt">${grid}</div></div>`,
+  { title:'My Schedule', sub:'Weekly timetable · BSIT-3A', crumbs:'<a href="#/app/dashboard">Home</a> / Schedule' });
+});
+
+route('/app/scan', () => {
+  clearTimers();
+  app().innerHTML = `
+  <div class="scanner" id="scanner">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#050b14">
+      <b>Scan Attendance</b>
+      <button class="btn btn-ghost" style="color:#fff" onclick="nav('/app/dashboard')">✕ Close</button>
+    </div>
+    <div class="scan-view">
+      <div class="scan-frame">
+        <span class="scan-corner sc-tl"></span><span class="scan-corner sc-tr"></span>
+        <span class="scan-corner sc-bl"></span><span class="scan-corner sc-br"></span>
+        <div class="scan-line"></div>
+      </div>
+      <div style="position:absolute;bottom:26px;left:0;right:0;text-align:center;color:#9db3d4;font-size:13.5px">
+        Point your camera at the QR code on the projector.<br>Codes rotate every 60 seconds — scan promptly.
+      </div>
+    </div>
+    <div class="scan-foot">
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="scanOutcome('ok')">▶ Simulate successful scan</button>
+        <button class="btn btn-outline" style="border-color:#334;color:#cbd8ec;background:transparent" onclick="scanOutcome('expired')">Simulate expired code</button>
+        <button class="btn btn-outline" style="border-color:#334;color:#cbd8ec;background:transparent" onclick="scanOutcome('dup')">Simulate duplicate</button>
+      </div>
+      <div class="small" style="color:#5a6779;margin-top:12px">Prototype: the camera feed is simulated. In the real app this page uses html5-qrcode.</div>
+    </div>
+  </div>`;
+});
+function scanOutcome(kind){
+  const cfg = {
+    ok:      { bg:'#14532d', ic:'✔️', title:'Attendance recorded', sub:'IT301 — Web Systems & Technologies 2', detail:'Status: <b>PRESENT</b> · 8:04 AM · Room CL-204', btn:'Done' },
+    expired: { bg:'#7c2d12', ic:'⏱️', title:'Code expired', sub:'This QR code has already rotated', detail:'Codes refresh every 60 seconds. Look at the projector and scan the current code.', btn:'Scan again' },
+    dup:     { bg:'#1e3a8a', ic:'ℹ️', title:'Already recorded', sub:'IT301 — Web Systems & Technologies 2', detail:'You were marked <b>PRESENT</b> at 8:04 AM. Only one record per session is allowed.', btn:'OK' },
+  }[kind];
+  const el = document.createElement('div');
+  el.className = 'scan-result';
+  el.style.background = cfg.bg;
+  el.innerHTML = `<div class="big-ic">${cfg.ic}</div>
+    <h2 style="font-size:24px;margin-bottom:8px">${cfg.title}</h2>
+    <div style="font-size:15px;font-weight:600;margin-bottom:6px">${cfg.sub}</div>
+    <div style="color:rgba(255,255,255,.85);max-width:340px;margin-bottom:26px">${cfg.detail}</div>
+    <button class="btn" style="background:#fff;color:#111;padding:11px 30px" onclick="this.closest('.scan-result').remove(); ${kind==='ok' ? "nav('/app/attendance')" : ''}">${cfg.btn}</button>`;
+  document.body.appendChild(el);
+}
+
+route('/app/attendance', () => {
+  if(S.role === 'FACULTY'){ nav('/app/attendance/records'); return; }
+  const rows = DB.myAttendance.map((a,i) => `
+    <tr>
+      <td>${a.date}</td>
+      <td><b>${a.subject}</b><div class="small muted">${a.session}</div></td>
+      <td>${a.time}</td>
+      <td>${badge(a.status)}</td>
+      <td style="text-align:right">${(a.status==='ABSENT'||a.status==='LATE') ? `<button class="btn btn-outline btn-sm" onclick="requestCorrection(${i})">✏️ Request correction</button>` : ''}</td>
+    </tr>`).join('');
+  shell(`
+    <div class="grid cols-4" style="margin-bottom:16px">
+      <div class="card stat"><div class="ic">✔️</div><div><div class="val">128</div><div class="lbl">Present</div></div></div>
+      <div class="card stat"><div class="ic">⏱️</div><div><div class="val">7</div><div class="lbl">Late</div></div></div>
+      <div class="card stat"><div class="ic">✖️</div><div><div class="val">5</div><div class="lbl">Absent</div></div></div>
+      <div class="card stat"><div class="ic">📄</div><div><div class="val">2</div><div class="lbl">Excused</div></div></div>
+    </div>
+    <div class="toolbar">
+      <input type="search" placeholder="Search records…">
+      <select class="filter-input"><option>All subjects</option>${DB.subjects.map(s=>`<option>${s.code}</option>`).join('')}</select>
+      <select class="filter-input"><option>This term</option><option>Last 30 days</option><option>Custom range…</option></select>
+      <select class="filter-input"><option>All statuses</option><option>Present</option><option>Late</option><option>Absent</option><option>Excused</option></select>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Subject</th><th>Time in</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="pagination"><span>1–8 of 142 records</span><button class="active">1</button><button>2</button><button>3</button><button>›</button></div>
+    </div>`,
+  { title:'My Attendance', sub:'Filterable history for the current term', crumbs:'<a href="#/app/dashboard">Home</a> / Attendance',
+    actions:`<button class="btn btn-outline" onclick="nav('/app/attendance/corrections')">My corrections</button>` });
+});
+
+function requestCorrection(i){
+  const a = DB.myAttendance[i];
+  modal('Request attendance correction', `
+    <div class="kv" style="margin-bottom:16px">
+      <dt>Record</dt><dd><b>${a.subject}</b> · ${a.session} · ${a.date}</dd>
+      <dt>Current status</dt><dd>${badge(a.status)}</dd>
+    </div>
+    <div class="field"><label>Requested status</label>
+      <select><option>Present</option><option>Excused</option><option>Late</option></select></div>
+    <div class="field"><label>Reason (5–500 characters, required)</label>
+      <textarea rows="3" placeholder="Explain what happened…"></textarea></div>
+    <div class="field"><label>Evidence attachment (optional)</label>
+      <input type="file"></div>
+    <p class="small muted">Your instructor or the department admin will review this request. You will be notified of the decision.</p>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="closeModal(); toast('Correction request submitted — status: Pending.')">Submit request</button>`);
+}
+
+route('/app/attendance/corrections', () => {
+  if(S.role === 'FACULTY') return facultyCorrections();
+  const rows = DB.corrections.map(c => `
+    <tr>
+      <td class="mono small">${c.id}</td>
+      <td><b>${c.subject}</b><div class="small muted">${c.date}</div></td>
+      <td class="small">${badge(c.from)} → ${badge(c.to)}</td>
+      <td class="small" style="max-width:260px">${c.reason}</td>
+      <td>${badge(c.status)}</td>
+      <td class="small">${c.reviewer}${c.note?`<div class="muted">“${c.note}”</div>`:''}</td>
+    </tr>`).join('');
+  shell(`
+    <div class="table-wrap">
+      <table><thead><tr><th>Ref</th><th>Record</th><th>Requested change</th><th>Reason</th><th>Status</th><th>Reviewer / note</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'My Corrections', sub:'Track the status of your correction requests', crumbs:'<a href="#/app/dashboard">Home</a> / <a href="#/app/attendance">Attendance</a> / Corrections' });
+});
+
+route('/app/notifications', () => {
+  const rows = DB.notifications.map((n,i) => `
+    <div style="display:flex;gap:14px;padding:16px 20px;border-bottom:1px solid var(--line);${n.unread?'background:var(--navy-50)':''}">
+      <div style="font-size:20px">${n.ic}</div>
+      <div style="flex:1"><b style="color:var(--navy-900)">${n.title}</b>${n.unread?' <span class="badge b-navy" style="font-size:10px">NEW</span>':''}
+        <div class="small" style="margin-top:2px">${n.body}</div></div>
+      <div class="small muted" style="white-space:nowrap">${n.time}</div>
+    </div>`).join('');
+  const prefs = [
+    ['Attendance recorded', true, false], ['At-risk warnings', true, true],
+    ['Correction decisions', true, true], ['Class suspensions & calendar changes', true, true],
+    ['New device sign-in', true, true], ['Announcements (Phase 2)', false, false],
+  ].map(p => `
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1" class="small"><b>${p[0]}</b></div>
+      <label class="small muted" style="display:flex;align-items:center;gap:7px">In-app <span class="switch"><input type="checkbox" ${p[1]?'checked':''} onchange="toast('Preference saved.')"><span class="sl"></span></span></label>
+      <label class="small muted" style="display:flex;align-items:center;gap:7px">Email <span class="switch"><input type="checkbox" ${p[2]?'checked':''} onchange="toast('Preference saved.')"><span class="sl"></span></span></label>
+    </div>`).join('');
+  shell(`
+    <div class="grid" style="grid-template-columns:1.6fr 1fr">
+      <div class="card">${rows}</div>
+      <div class="card card-pad" style="align-self:start">
+        <h3>Notification preferences</h3>${prefs}
+      </div>
+    </div>`,
+  { title:'Notifications', sub:`${S.unread} unread`, crumbs:'<a href="#/app/dashboard">Home</a> / Notifications',
+    actions:`<button class="btn btn-outline" onclick="S.unread=0; render(); toast('All notifications marked as read.')">Mark all as read</button>` });
+});
+
+route('/app/profile', () => {
+  const u = user();
+  const isStudent = S.role === 'STUDENT';
+  shell(`
+    <div class="grid" style="grid-template-columns:1fr 1.6fr">
+      <div class="card card-pad" style="text-align:center;align-self:start">
+        <span class="avatar lg" style="margin:6px auto 14px">${u.initials}</span>
+        <div style="font-size:17px;font-weight:800;color:var(--navy-900)">${u.name}</div>
+        <div class="muted small">${u.sub}</div>
+        <div class="mono small" style="margin-top:6px">${u.id}</div>
+        ${isStudent?`<div style="margin-top:12px"><span class="sync-ok">✔ OSAS synced · Jul 21, 02:00</span></div>`:''}
+      </div>
+      <div style="display:grid;gap:16px">
+        <div class="card card-pad">
+          <h3>${isStudent ? 'OSAS-synced information (read-only)' : 'Account information'}</h3>
+          <div class="kv">
+            ${isStudent ? `
+            <dt>Student ID</dt><dd class="mono">${u.id}</dd>
+            <dt>Program</dt><dd>BS Information Technology</dd>
+            <dt>Year & Section</dt><dd>3rd Year · BSIT-3A</dd>
+            <dt>Status</dt><dd>${badge('REGULAR')}</dd>
+            <dt>Adviser</dt><dd>Engr. Maria L. Reyes</dd>` : `
+            <dt>Employee ID</dt><dd class="mono">${u.id}</dd>
+            <dt>Role</dt><dd>${badge('REGULAR').replace('Regular', u.sub)}</dd>
+            <dt>Email</dt><dd>${u.email}</dd>`}
+          </div>
+          ${isStudent?`<p class="small muted" style="margin-top:12px">These fields come from the university OSAS system. To correct them, contact the OSAS office.</p>`:''}
+        </div>
+        <div class="card card-pad">
+          <h3>Editable contact details</h3>
+          <div class="grid cols-2">
+            <div class="field"><label>Contact number</label><input value="0917 555 0182"></div>
+            <div class="field"><label>Personal email</label><input value="${u.email}"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="toast('Contact details saved.')">Save changes</button>
+        </div>
+        <div class="card card-pad">
+          <h3>Active device sessions</h3>
+          <div class="table-wrap" style="box-shadow:none">
+          <table><thead><tr><th>Device</th><th>IP</th><th>Last active</th><th></th></tr></thead><tbody>
+            <tr><td><b>Chrome · Windows 11</b> <span class="badge b-navy">This device</span></td><td class="mono small">10.10.4.121</td><td class="small">Now</td><td></td></tr>
+            <tr><td>Safari · iPhone</td><td class="mono small">10.10.9.88</td><td class="small">Jul 20, 7:42 PM</td>
+              <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="confirmDialog('Revoke session?','The device will be signed out immediately and its refresh token invalidated.',()=>toast('Session revoked.'))">Revoke</button></td></tr>
+          </tbody></table></div>
+        </div>
+      </div>
+    </div>`,
+  { title:'Profile', crumbs:'<a href="#/app/dashboard">Home</a> / Profile' });
+});
+
+function confirmDialog(title, msg, onYes){
+  modal(title, `<p>${msg}</p>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-danger" id="confirm-yes">Confirm</button>`);
+  $('#confirm-yes').onclick = () => { closeModal(); onYes(); };
+}
+
+/* =====================================================================
+   FACULTY PAGES
+   ===================================================================== */
+route('/app/classes', () => {
+  const rows = DB.facultyClasses.map(c => `
+    <tr>
+      <td><b>${c.code}</b> — ${c.title}<div class="small muted">${c.section}</div></td>
+      <td class="small">${c.sched}<div class="muted">${c.room}</div></td>
+      <td>${c.enrolled}</td>
+      <td><span class="badge ${c.rate<85?'b-late':'b-present'}">${c.rate}%</span></td>
+      <td style="text-align:right">
+        <button class="btn btn-outline btn-sm" onclick="nav('/app/classes/${c.id}')">Open</button>
+        <button class="btn btn-primary btn-sm" onclick="startSession('${c.code} · ${c.section}')">▶ Start session</button>
+      </td>
+    </tr>`).join('');
+  shell(`
+    <div class="table-wrap">
+      <table><thead><tr><th>Offering</th><th>Schedule / Room</th><th>Enrolled</th><th>Attendance rate</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'My Classes', sub:`Assigned offerings · A.Y. ${DB.term.year}, ${DB.term.semester}`, crumbs:'<a href="#/app/dashboard">Home</a> / Classes' });
+});
+
+function startSession(label){
+  modal('Start attendance session', `
+    <div class="kv" style="margin-bottom:16px">
+      <dt>Class</dt><dd><b>${label}</b></dd>
+      <dt>Date</dt><dd>Monday, July 21, 2026</dd>
+      <dt>Grace period</dt><dd>15 min (Present) · Late until 30 min</dd>
+    </div>
+    <div class="field"><label>QR mode</label>
+      <select><option>Dynamic — rotates every 60s (recommended)</option><option>Static — single code (needs admin allowance)</option></select></div>
+    <p class="small muted">Opening the session generates the first QR code and starts accepting scans from enrolled students only.</p>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="closeModal(); nav('/app/sessions/ses-981/live')">▶ Open session & show QR</button>`);
+}
+
+route('/app/classes/:id', (id) => {
+  const c = DB.facultyClasses.find(x=>x.id===id) || DB.facultyClasses[0];
+  const roster = DB.roster.slice(0,10).map((r,i) => {
+    const rate = [98,95,58,92,90,88,96,94,64,91][i];
+    return `<tr><td><span class="avatar" style="width:28px;height:28px;font-size:11px">${r[0].split(',')[0][0]}${r[0].split(' ').pop()[0]}</span></td>
+      <td><b>${r[0]}</b></td><td class="mono small">${r[1]}</td>
+      <td><span class="badge ${rate<60?'b-absent':rate<75?'b-late':'b-present'}">${rate}%</span></td>
+      <td class="small muted">${rate<75?'At risk':''}</td></tr>`;
+  }).join('');
+  const sessions = [
+    ['Jul 21 (Mon)','8:00 AM','OPEN','34 / 38'],['Jul 18 (Fri)','8:00 AM','CLOSED','36 / 38'],
+    ['Jul 16 (Wed)','8:01 AM','CLOSED','35 / 38'],['Jul 14 (Mon)','8:00 AM','CLOSED','33 / 38'],
+  ].map(s=>`<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]==='OPEN'?badge('OPEN'):'<span class="badge b-gray">Closed</span>'}</td><td>${s[3]}</td>
+    <td style="text-align:right">${s[2]==='OPEN'?`<button class="btn btn-primary btn-sm" onclick="nav('/app/sessions/ses-981/live')">Live view</button>`:`<button class="btn btn-outline btn-sm" onclick="toast('Session sheet opened (illustrative).')">Sheet</button>`}</td></tr>`).join('');
+  shell(`
+    <div class="grid cols-4" style="margin-bottom:16px">
+      <div class="card stat"><div class="ic">👥</div><div><div class="val">${c.enrolled}</div><div class="lbl">Enrolled</div></div></div>
+      <div class="card stat"><div class="ic">📈</div><div><div class="val">${c.rate}%</div><div class="lbl">Class rate</div></div></div>
+      <div class="card stat"><div class="ic">🗓️</div><div><div class="val">22</div><div class="lbl">Sessions held</div></div></div>
+      <div class="card stat"><div class="ic">⚠️</div><div><div class="val">2</div><div class="lbl">At-risk students</div></div></div>
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0">Roster</h3>
+          <button class="btn btn-outline btn-sm" onclick="toast('Roster exported as XLSX (illustrative).')">⬇ Export</button></div>
+        <table><thead><tr><th></th><th>Student</th><th>ID</th><th>Rate</th><th></th></tr></thead><tbody>${roster}</tbody></table>
+        <div class="pagination"><span>1–10 of ${c.enrolled}</span><button class="active">1</button><button>2</button><button>3</button><button>4</button></div>
+      </div>
+      <div class="card">
+        <div class="card-pad" style="padding-bottom:6px"><h3 style="margin:0">Session history</h3></div>
+        <table><thead><tr><th>Date</th><th>Opened</th><th>Status</th><th>Present</th><th></th></tr></thead><tbody>${sessions}</tbody></table>
+      </div>
+    </div>`,
+  { title:`${c.code} — ${c.title}`, sub:`${c.section} · ${c.sched} · ${c.room}`,
+    crumbs:`<a href="#/app/dashboard">Home</a> / <a href="#/app/classes">Classes</a> / ${c.code} ${c.section}`,
+    actions:`<button class="btn btn-primary" onclick="startSession('${c.code} · ${c.section}')">▶ Start session</button>` });
+});
+
+/* --- live session (projector mode) --- */
+route('/app/sessions/:id/live', () => {
+  clearTimers();
+  S.liveRows = [
+    ['Abad, Kristine M.','8:00 AM','PRESENT'],['Bautista, Leo R.','8:01 AM','PRESENT'],
+    ['Dela Peña, Mika A.','8:02 AM','PRESENT'],['Garcia, Miguel T.','8:03 AM','PRESENT'],
+    ['Santos, Jerome D.','8:04 AM','PRESENT'],['Javier, Trisha D.','8:17 AM','LATE'],
+  ];
+  const renderRoster = () => {
+    const present = S.liveRows.filter(r=>r[2]==='PRESENT').length;
+    const late = S.liveRows.filter(r=>r[2]==='LATE').length;
+    $('#pc-present').textContent = present;
+    $('#pc-late').textContent = late;
+    $('#pc-remaining').textContent = 38 - present - late;
+    $('#proj-list').innerHTML = S.liveRows.slice().reverse().map(r => `
+      <div class="proj-row">
+        <span class="avatar" style="width:28px;height:28px;font-size:11px;background:${r[2]==='LATE'?'var(--amber)':'var(--green)'}">${r[0][0]}</span>
+        <div style="font-size:13px">${r[0]}<div style="font-size:11px;color:#9db3d4">${r[2]==='LATE'?'Late':'Present'}</div></div>
+        <span class="t">${r[1]}</span>
+      </div>`).join('');
+  };
+  app().innerHTML = `
+  <div class="projector">
+    <div class="proj-top">
+      <div class="brand" style="font-size:15px"><span class="logo" style="width:32px;height:32px;font-size:14px">IT</span> LCC IT Portal — Live Session</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="badge b-open" style="font-size:12px">● OPEN · Dynamic QR</span>
+        <button class="btn btn-danger btn-sm" onclick="closeSessionDialog()">■ Close session</button>
+        <button class="btn btn-ghost btn-sm" style="color:#cbd8ec" onclick="nav('/app/dashboard')">Exit</button>
+      </div>
+    </div>
+    <div class="proj-body">
+      <div class="proj-qr">
+        <div style="font-size:clamp(19px,2.4vw,27px);font-weight:800;margin-bottom:6px">IT301 — Web Systems &amp; Technologies 2</div>
+        <div style="color:#9db3d4;margin-bottom:22px">BSIT-3A · Room CL-204 · 8:00–9:30 AM · Engr. M. Reyes</div>
+        <div class="qr-shell">${qrBlock('live-qr', 250).replace('class="qr-box"','style="display:inline-block"')}</div>
+        <div class="proj-meta">
+          <div class="cd">Code refreshes in <b id="cd-num" style="color:#fff">60</b>s</div>
+          <div class="cd-bar"><div class="cd-fill" id="cd-fill" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div class="proj-roster">
+        <header><b>Live roster</b><span class="small" style="color:#9db3d4">38 enrolled</span></header>
+        <div class="proj-counts">
+          <div><b id="pc-present" style="color:#4ade80">0</b><span>Present</span></div>
+          <div><b id="pc-late" style="color:#fbbf24">0</b><span>Late</span></div>
+          <div><b id="pc-remaining" style="color:#94a3b8">0</b><span>Not yet in</span></div>
+        </div>
+        <div class="proj-list" id="proj-list"></div>
+      </div>
+    </div>
+  </div>`;
+  drawQR($('#live-qr'), 987654);
+  renderRoster();
+  let cd = 60;
+  S.timers.push(setInterval(() => {
+    cd--;
+    if(cd <= 0){ cd = 60; drawQR($('#live-qr'), Date.now()); }
+    const n = $('#cd-num'), f = $('#cd-fill');
+    if(n){ n.textContent = cd; f.style.width = (cd/60*100) + '%'; }
+  }, 1000));
+  // simulate incoming scans
+  const queue = [['Lim, Kevin O.','8:19 AM','LATE'],['Mendoza, Faith S.','8:20 AM','LATE'],['Navarro, Josh P.','8:21 AM','LATE'],['Ocampo, Bea R.','8:22 AM','LATE']];
+  S.timers.push(setInterval(() => {
+    if(queue.length){ S.liveRows.push(queue.shift()); renderRoster(); }
+  }, 7000));
+});
+function closeSessionDialog(){
+  modal('Close session — absents preview', `
+    <p style="margin-bottom:14px">Closing this session will automatically mark the remaining students <b>Absent</b>. This can later be changed via override or correction.</p>
+    <div class="table-wrap" style="box-shadow:none;max-height:220px;overflow:auto">
+    <table><thead><tr><th>Will be marked absent</th><th>ID</th></tr></thead><tbody>
+      ${DB.roster.slice(2,8).map(r=>`<tr><td>${r[0]}</td><td class="mono small">${r[1]}</td></tr>`).join('')}
+    </tbody></table></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Keep open</button>
+     <button class="btn btn-danger" onclick="closeModal(); toast('Session closed — 28 present, 6 late, 4 absent.'); nav('/app/dashboard')">■ Close session</button>`);
+}
+
+route('/app/attendance/records', () => {
+  const recs = [
+    ['Jul 21','IT301 · BSIT-3A','Abad, Kristine M.','8:00 AM','PRESENT','Scan'],
+    ['Jul 21','IT301 · BSIT-3A','Javier, Trisha D.','8:17 AM','LATE','Scan'],
+    ['Jul 21','IT301 · BSIT-3A','Cruz, Danilo S.','—','ABSENT','Auto'],
+    ['Jul 18','IT304 · BSIT-3A','Lim, Kevin O.','10:31 AM','PRESENT','Override'],
+    ['Jul 18','IT304 · BSIT-3A','Hernandez, Ana L.','10:02 AM','PRESENT','Scan'],
+    ['Jul 18','IT301 · BSIT-3B','Estrada, Paulo V.','9:31 AM','PRESENT','Manual'],
+  ].map((r,i) => `
+    <tr><td class="small">${r[0]}</td><td class="small"><b>${r[1]}</b></td><td>${r[2]}</td><td class="small">${r[3]}</td>
+      <td>${badge(r[4])}</td><td><span class="badge b-gray">${r[5]}</span></td>
+      <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="overrideDialog('${r[2]}','${r[1]}','${r[4]}')">Override</button></td></tr>`).join('');
+  shell(`
+    <div class="toolbar">
+      <input type="search" placeholder="Search student…">
+      <select class="filter-input"><option>All my classes</option>${DB.facultyClasses.map(c=>`<option>${c.code} · ${c.section}</option>`).join('')}</select>
+      <select class="filter-input"><option>Today</option><option>This week</option><option>This month</option></select>
+      <select class="filter-input"><option>All statuses</option><option>Present</option><option>Late</option><option>Absent</option><option>Excused</option></select>
+      <div style="flex:1"></div>
+      <button class="btn btn-outline" onclick="manualEntryDialog()">＋ Manual entry</button>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Class</th><th>Student</th><th>Time</th><th>Status</th><th>Marked by</th><th></th></tr></thead>
+      <tbody>${recs}</tbody></table>
+      <div class="pagination"><span>1–6 of 1,204</span><button class="active">1</button><button>2</button><button>3</button><button>›</button></div>
+    </div>`,
+  { title:'Attendance Records', sub:'Across your assigned classes · overrides require a reason and are audited',
+    crumbs:'<a href="#/app/dashboard">Home</a> / Attendance records' });
+});
+function overrideDialog(student, cls, cur){
+  modal('Override attendance record', `
+    <div class="kv" style="margin-bottom:16px">
+      <dt>Student</dt><dd><b>${student}</b></dd>
+      <dt>Class</dt><dd>${cls}</dd>
+      <dt>Current status</dt><dd>${badge(cur)}</dd>
+    </div>
+    <div class="field"><label>New status</label>
+      <select><option>Present</option><option>Late</option><option>Absent</option><option>Excused</option></select></div>
+    <div class="field"><label>Reason (required — recorded in the audit log)</label>
+      <textarea rows="3" placeholder="e.g. Scanner failed; student verified in classroom"></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="closeModal(); toast('Record overridden — change written to the audit log.')">Apply override</button>`);
+}
+function manualEntryDialog(){
+  modal('Manual attendance entry', `
+    <p class="small muted" style="margin-bottom:14px">Fallback for students with technical issues (broken camera, dead battery). Entries are tagged <b>FACULTY_MANUAL</b> and audited.</p>
+    <div class="field"><label>Session</label><select><option>IT301 · BSIT-3A · Jul 21 (Open)</option></select></div>
+    <div class="field"><label>Student</label><select>${DB.roster.map(r=>`<option>${r[0]} — ${r[1]}</option>`).join('')}</select></div>
+    <div class="field"><label>Status</label><select><option>Present</option><option>Late</option></select></div>
+    <div class="field"><label>Reason (required)</label><input placeholder="e.g. Phone camera not working"></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="closeModal(); toast('Manual attendance recorded.')">Record attendance</button>`);
+}
+
+function facultyCorrections(){
+  const rows = [
+    ['COR-0142','Santos, Jerome D.','IT304 · Jul 20','ABSENT','EXCUSED','Medical appointment — clinic slip attached','📎 clinic-slip.jpg'],
+    ['COR-0144','Flores, Janna C.','IT301 · Jul 18','LATE','PRESENT','Queue at the door was long, scanned 3 mins late','—'],
+  ].map(c => `
+    <tr><td class="mono small">${c[0]}</td>
+      <td><b>${c[1]}</b><div class="small muted">${c[2]}</div></td>
+      <td class="small">${badge(c[3])} → ${badge(c[4])}</td>
+      <td class="small" style="max-width:240px">${c[5]}<div class="muted">${c[6]}</div></td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-primary btn-sm" onclick="reviewDialog('${c[0]}','approve')">✔ Approve</button>
+        <button class="btn btn-outline btn-sm" onclick="reviewDialog('${c[0]}','reject')">✖ Reject</button></td></tr>`).join('');
+  shell(`
+    <div class="table-wrap">
+      <table><thead><tr><th>Ref</th><th>Student / record</th><th>Requested</th><th>Reason / evidence</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'Correction Requests', sub:'Requests from students in your classes', crumbs:'<a href="#/app/dashboard">Home</a> / Corrections' });
+}
+function reviewDialog(ref, action){
+  modal(`${action === 'approve' ? 'Approve' : 'Reject'} correction ${ref}`, `
+    <div class="field"><label>Review note ${action==='reject'?'(required)':'(optional)'}</label>
+      <textarea rows="3" placeholder="Visible to the student…"></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn ${action==='approve'?'btn-primary':'btn-danger'}" onclick="closeModal(); toast('Correction ${ref} ${action}d — student notified.')">${action==='approve'?'✔ Approve':'✖ Reject'}</button>`);
+}
+
+route('/app/reports', () => {
+  const isFaculty = S.role === 'FACULTY';
+  shell(`
+    <div class="grid" style="grid-template-columns:320px 1fr">
+      <div class="card card-pad" style="align-self:start">
+        <h3>Report parameters</h3>
+        <div class="field"><label>Report type</label>
+          <select id="rep-type"><option>Class attendance summary</option><option>Per-student report</option><option>Session sheet</option><option>At-risk students</option>${isFaculty?'':'<option>Per-instructor comparison</option><option>Section comparison</option>'}</select></div>
+        <div class="field"><label>Scope</label>
+          <select>${isFaculty ? DB.facultyClasses.map(c=>`<option>${c.code} · ${c.section}</option>`).join('') : '<option>Whole department</option><option>BSIT-3A</option><option>BSIT-3B</option><option>Per instructor…</option>'}</select></div>
+        <div class="field"><label>Range</label>
+          <select><option>This week</option><option>Daily</option><option>Monthly</option><option>Whole semester</option><option>Custom…</option></select></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="toast('Preview refreshed.')">Generate preview</button>
+        <div style="border-top:1px dashed var(--line);margin:16px 0 12px"></div>
+        <div class="small muted" style="margin-bottom:10px">Export</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="toast('CSV export started — you will be notified when ready.')">CSV</button>
+          <button class="btn btn-outline btn-sm" onclick="toast('Excel (XLSX) export started.')">Excel</button>
+          <button class="btn btn-outline btn-sm" onclick="toast('PDF export started.')">PDF</button>
+        </div>
+      </div>
+      <div style="display:grid;gap:16px">
+        <div class="card card-pad">
+          <h3>Preview — Weekly summary${isFaculty ? ' · IT301 BSIT-3A' : ' · Department'}</h3>
+          ${lineChart([91,88,93,90,94], 560, 140)}
+          <div class="legend"><span><i style="background:#19407c"></i>Attendance rate, Jul 14 – Jul 18</span></div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>${isFaculty?'Student':'Class'}</th><th>Sessions</th><th>Present</th><th>Late</th><th>Absent</th><th>Rate</th></tr></thead><tbody>
+            ${(isFaculty ? [['Abad, Kristine M.',22,21,1,0,'98%'],['Bautista, Leo R.',22,20,1,1,'95%'],['Cruz, Danilo S.',22,12,1,9,'58%'],['Dela Peña, Mika A.',22,20,0,2,'92%'],['Santos, Jerome D.',22,20,1,1,'96%']]
+                       : [['IT301 · BSIT-3A',22,'93%','4%','3%','93%'],['IT301 · BSIT-3B',20,'86%','5%','9%','89%'],['IT304 · BSIT-3A',11,'82%','6%','12%','85%'],['IT302 · BSIT-3A',18,'76%','8%','16%','79%']])
+              .map(r=>`<tr>${r.map((c,i)=>`<td>${i===0?'<b>'+c+'</b>':c}</td>`).join('')}</tr>`).join('')}
+          </tbody></table>
+        </div>
+      </div>
+    </div>`,
+  { title: isFaculty ? 'Reports' : 'Department Reports',
+    sub:'Daily · weekly · monthly · semester — exportable as CSV, Excel, PDF',
+    crumbs:'<a href="#/app/dashboard">Home</a> / Reports' });
+});
+
+/* =====================================================================
+   ADMIN PAGES
+   ===================================================================== */
+route('/app/monitoring', () => {
+  const rows = DB.openSessions.map(s => {
+    const pct = Math.round((s.present+s.late)/s.enrolled*100);
+    return `<tr>
+      <td><b>${s.class}</b><div class="small muted">${s.faculty}</div></td>
+      <td>${s.room}</td><td class="small">${s.started}</td>
+      <td><b style="color:var(--green)">${s.present}</b> present · <b style="color:var(--amber)">${s.late}</b> late</td>
+      <td style="min-width:150px"><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="small muted">${pct}% of ${s.enrolled}</span></td>
+      <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="nav('/app/sessions/${s.id}/live')">Drill in</button></td></tr>`;
+  }).join('');
+  shell(`
+    <div class="grid cols-3" style="margin-bottom:16px">
+      <div class="card stat"><div class="ic">📡</div><div><div class="val">3</div><div class="lbl">Open sessions</div></div></div>
+      <div class="card stat"><div class="ic">🎓</div><div><div class="val">112</div><div class="lbl">Students scanned in (today)</div></div></div>
+      <div class="card stat"><div class="ic">📈</div><div><div class="val">91.2%</div><div class="lbl">Today's dept rate</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-pad" style="padding-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+        <h3 style="margin:0">Open sessions right now</h3><span class="small muted">Auto-refreshing · Socket.IO live</span></div>
+      <table><thead><tr><th>Class</th><th>Room</th><th>Opened</th><th>Counts</th><th>Progress</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'Live Monitoring', sub:'All open sessions across the department', crumbs:'<a href="#/app/dashboard">Home</a> / Monitoring' });
+});
+
+route('/app/students', () => {
+  const rows = DB.students.map(s => `
+    <tr>
+      <td><span class="avatar" style="width:28px;height:28px;font-size:11px">${s.name[0]}</span></td>
+      <td><b>${s.name}</b></td><td class="mono small">${s.id}</td>
+      <td class="small">${s.course} ${s.yr}${s.sec ? '-'+s.sec.slice(-1) : ''} · Sec ${s.sec}</td>
+      <td>${badge(s.status)}</td>
+      <td>${s.synced ? '<span class="sync-ok">✔ OSAS</span>' : '<span class="badge b-late">Local only</span>'}</td>
+      <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="nav('/app/students/${s.id}')">Open</button></td>
+    </tr>`).join('');
+  shell(`
+    <div class="toolbar">
+      <input type="search" placeholder="Search name or student ID…">
+      <select class="filter-input"><option>All years</option><option>1st</option><option>2nd</option><option>3rd</option><option>4th</option></select>
+      <select class="filter-input"><option>All sections</option>${DB.sections.map(s=>`<option>${s.name}</option>`).join('')}</select>
+      <select class="filter-input"><option>All statuses</option><option>Regular</option><option>Irregular</option><option>Transferee</option></select>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th></th><th>Name</th><th>Student ID</th><th>Program</th><th>Status</th><th>Source</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table>
+      <div class="pagination"><span>1–8 of 1,987</span><button class="active">1</button><button>2</button><button>3</button><button>…</button><button>249</button></div>
+    </div>`,
+  { title:'Students', sub:'Directory · profiles sync nightly from OSAS', crumbs:'<a href="#/app/dashboard">Home</a> / Students',
+    actions:`<button class="btn btn-outline" onclick="csvImportDialog()">⬆ CSV import</button>
+             <button class="btn btn-primary" onclick="toast('Manual student creation is for edge cases — most students arrive via OSAS sync.')">＋ Add student</button>` });
+});
+function csvImportDialog(){
+  modal('CSV import — validation preview', `
+    <p class="small muted" style="margin-bottom:14px">For edge cases not covered by OSAS sync. Each row is validated before anything is written.</p>
+    <div class="table-wrap" style="box-shadow:none">
+    <table><thead><tr><th>Row</th><th>Student</th><th>Result</th></tr></thead><tbody>
+      <tr><td>1</td><td class="small">2024-20991 · Ramos, Ella</td><td><span class="badge b-present">Valid</span></td></tr>
+      <tr><td>2</td><td class="small">2024-21002 · Uy, Marcus</td><td><span class="badge b-present">Valid</span></td></tr>
+      <tr><td>3</td><td class="small">2023-11482 · Santos, Jerome</td><td><span class="badge b-absent">Duplicate — skipped</span></td></tr>
+      <tr><td>4</td><td class="small">2024-2101 · (bad ID format)</td><td><span class="badge b-late">Fix ID format</span></td></tr>
+    </tbody></table></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="closeModal(); toast('2 students imported, 1 duplicate skipped, 1 row needs fixing.')">Import valid rows</button>`);
+}
+
+route('/app/students/:id', (id) => {
+  const s = DB.students.find(x=>x.id===id) || DB.students[7];
+  shell(`
+    <div class="grid" style="grid-template-columns:1fr 1.8fr">
+      <div style="display:grid;gap:16px;align-self:start">
+        <div class="card card-pad" style="text-align:center">
+          <span class="avatar lg" style="margin:4px auto 12px">${s.name[0]}${s.name.split(' ').pop()[0]}</span>
+          <div style="font-size:17px;font-weight:800;color:var(--navy-900)">${s.name}</div>
+          <div class="mono small muted">${s.id}</div>
+          <div style="margin-top:8px">${badge(s.status)}</div>
+          <div style="margin-top:10px">${s.synced?'<span class="sync-ok">✔ OSAS synced · Jul 21, 02:00</span>':'<span class="badge b-late">Local only</span>'}</div>
+        </div>
+        <div class="card card-pad">
+          <h3>Profile (OSAS fields read-only)</h3>
+          <div class="kv" style="grid-template-columns:110px 1fr">
+            <dt>Program</dt><dd>BS Information Technology</dd>
+            <dt>Year</dt><dd>${s.yr}rd Year</dd>
+            <dt>Section</dt><dd>BSIT-${s.sec}</dd>
+            <dt>Adviser</dt><dd>Engr. M. Reyes <button class="btn btn-ghost btn-sm" onclick="toast('Adviser assignment is a local field — editable.')">edit</button></dd>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;gap:16px;align-self:start">
+        <div class="card card-pad">
+          <h3>Attendance overview</h3>
+          <div class="ring-wrap">${ringSVG(90, '#19407c', 100, 10)}
+            <div style="flex:1">${DB.studentRates.slice(0,4).map(r=>`
+              <div class="bar-row"><span class="lbl">${r.code}</span>
+                <div class="bar-track"><div class="bar-fill" style="width:${r.rate}%;background:${r.rate<75?'var(--red)':'var(--navy-700)'}"></div></div>
+                <span class="v">${r.rate}%</span></div>`).join('')}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-pad" style="padding-bottom:6px"><h3 style="margin:0">Recent records</h3></div>
+          <table><thead><tr><th>Date</th><th>Subject</th><th>Time</th><th>Status</th></tr></thead><tbody>
+            ${DB.myAttendance.slice(0,5).map(a=>`<tr><td class="small">${a.date}</td><td><b>${a.subject}</b></td><td class="small">${a.time}</td><td>${badge(a.status)}</td></tr>`).join('')}
+          </tbody></table>
+        </div>
+      </div>
+    </div>`,
+  { title:'Student Detail', crumbs:`<a href="#/app/dashboard">Home</a> / <a href="#/app/students">Students</a> / ${s.id}` });
+});
+
+route('/app/faculty', () => {
+  const rows = DB.facultyList.map(f => `
+    <tr><td><b>${f.name}</b><div class="mono small muted">${f.id}</div></td>
+      <td class="small">${f.pos}</td><td>${badge(f.type)}</td><td>${f.classes}</td><td>${badge(f.status)}</td>
+      <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="toast('Faculty detail is illustrative in this prototype.')">Open</button></td></tr>`).join('');
+  shell(`
+    <div class="toolbar">
+      <input type="search" placeholder="Search faculty…">
+      <select class="filter-input"><option>All employment types</option><option>Full-time</option><option>Part-time</option></select>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Name</th><th>Position</th><th>Type</th><th>Classes</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'Faculty', sub:'Faculty records with linked portal accounts', crumbs:'<a href="#/app/dashboard">Home</a> / Faculty',
+    actions:`<button class="btn btn-primary" onclick="toast('Create-faculty wizard is illustrative in this prototype.')">＋ Add faculty</button>` });
+});
+
+route('/app/subjects', () => {
+  const rows = DB.subjects.map(s => `
+    <tr><td class="mono"><b>${s.code}</b></td><td>${s.title}</td><td>${s.units}</td>
+      <td><span class="badge b-gray">${s.type==='BOTH'?'Lec + Lab':s.type==='LAB'?'Laboratory':'Lecture'}</span></td>
+      <td class="small">1st Semester</td>
+      <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="toast('Edit subject (illustrative).')">Edit</button>
+      <button class="btn btn-ghost btn-sm" onclick="confirmDialog('Archive subject ${s.code}?','The subject will be soft-deleted. Historical attendance stays intact.',()=>toast('${s.code} archived.'))">Archive</button></td></tr>`).join('');
+  shell(`
+    <div class="table-wrap">
+      <table><thead><tr><th>Code</th><th>Title</th><th>Units</th><th>Type</th><th>Offered</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'Subjects', crumbs:'<a href="#/app/dashboard">Home</a> / Subjects',
+    actions:`<button class="btn btn-primary" onclick="toast('New subject form (illustrative).')">＋ New subject</button>` });
+});
+
+route('/app/sections', () => {
+  const rows = DB.sections.map(s => `
+    <tr><td><b>${s.name}</b></td><td>Year ${s.yr}</td>
+      <td>${s.count} / ${s.cap}<div class="bar-track" style="max-width:110px;margin-top:4px"><div class="bar-fill" style="width:${Math.round(s.count/s.cap*100)}%"></div></div></td>
+      <td class="small">${s.adviser}</td>
+      <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="toast('Edit section (illustrative).')">Edit</button></td></tr>`).join('');
+  shell(`
+    <div class="table-wrap">
+      <table><thead><tr><th>Section</th><th>Year level</th><th>Enrollment / capacity</th><th>Adviser</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'Sections', crumbs:'<a href="#/app/dashboard">Home</a> / Sections',
+    actions:`<button class="btn btn-primary" onclick="toast('New section form (illustrative).')">＋ New section</button>` });
+});
+
+route('/app/offerings', () => {
+  const offs = [
+    ['IT301 · Web Systems 2','BSIT-3A','Engr. M. Reyes','MWF 8:00–9:30 · CL-204','15 / 30'],
+    ['IT301 · Web Systems 2','BSIT-3B','Engr. M. Reyes','MWF 9:30–11:00 · CL-204','15 / 30'],
+    ['IT302 · Info Assurance','BSIT-3A','Mr. A. Villanueva','TTh 8:30–10:00 · RM-115','15 / 30'],
+    ['IT304 · Adv. Databases','BSIT-3A','Engr. M. Reyes','TTh 10:00–1:00 · CL-301','10 / 20'],
+    ['IT305 · Capstone 1','BSIT-3A','Dr. R. Aquino','MTh 3:00–4:30 · CL-208','15 / 30'],
+  ].map(o => `
+    <tr><td><b>${o[0]}</b></td><td>${o[1]}</td><td class="small">${o[2]}</td><td class="small">${o[3]}</td>
+      <td class="small" title="grace / late cutoff">${o[4]} min</td>
+      <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="toast('Schedule editor with conflict detection (illustrative).')">Schedule</button>
+      <button class="btn btn-ghost btn-sm" onclick="toast('Offering editor (illustrative).')">Edit</button></td></tr>`).join('');
+  shell(`
+    <div class="banner-warn" style="margin-bottom:16px">💡 <div>The schedule editor validates against <b>conflicts</b>: same section, same faculty, or same room cannot overlap. Grace/cutoff columns override the system defaults (15 / 30 min).</div></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Subject</th><th>Section</th><th>Faculty</th><th>Schedule / room</th><th>Grace / cutoff</th><th></th></tr></thead><tbody>${offs}</tbody></table>
+    </div>`,
+  { title:'Class Offerings', sub:`Subject + section + faculty assembly for A.Y. ${DB.term.year}`, crumbs:'<a href="#/app/dashboard">Home</a> / Offerings',
+    actions:`<button class="btn btn-primary" onclick="toast('New offering wizard (illustrative).')">＋ New offering</button>` });
+});
+
+route('/app/enrollments', () => {
+  shell(`
+    <div class="grid" style="grid-template-columns:320px 1fr">
+      <div class="card card-pad" style="align-self:start">
+        <h3>Bulk enroll</h3>
+        <div class="field"><label>Offering</label><select><option>IT301 · BSIT-3A · Engr. Reyes</option><option>IT304 · BSIT-3A · Engr. Reyes</option></select></div>
+        <div class="field"><label>Source</label><select><option>Whole section — BSIT-3A (38 students)</option><option>Paste ID list…</option><option>CSV upload…</option></select></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="toast('38 students enrolled in IT301 · BSIT-3A.')">Enroll section</button>
+      </div>
+      <div class="table-wrap" style="align-self:start">
+        <table><thead><tr><th>Student</th><th>Offering</th><th>Status</th><th>Enrolled</th><th></th></tr></thead><tbody>
+          ${DB.roster.slice(0,6).map((r,i)=>`<tr><td><b>${r[0]}</b><div class="mono small muted">${r[1]}</div></td>
+            <td class="small">IT301 · BSIT-3A</td><td><span class="badge ${i===2?'b-gray':'b-present'}">${i===2?'Dropped':'Enrolled'}</span></td>
+            <td class="small">Aug 12, 2026</td>
+            <td style="text-align:right">${i===2?'':`<button class="btn btn-ghost btn-sm" onclick="confirmDialog('Drop enrollment?','Attendance history is preserved; the student stops appearing on new session rosters.',()=>toast('Enrollment dropped.'))">Drop</button>`}</td></tr>`).join('')}
+        </tbody></table>
+        <div class="pagination"><span>1–6 of 214</span><button class="active">1</button><button>2</button><button>›</button></div>
+      </div>
+    </div>`,
+  { title:'Enrollments', sub:'Bulk enroll by section or list · drops preserve history', crumbs:'<a href="#/app/dashboard">Home</a> / Enrollments' });
+});
+
+route('/app/calendar', () => {
+  const rows = DB.calendar.map(c => `
+    <tr><td class="small" style="white-space:nowrap"><b>${c.date}</b></td><td>${badge(c.type)}</td>
+      <td><b>${c.title}</b><div class="small muted">${c.affects}</div></td>
+      <td>${c.src==='OSAS' ? '<span class="sync-ok">✔ OSAS</span>' : '<span class="badge b-gray">Local</span>'}</td>
+      <td style="text-align:right"><button class="btn btn-outline btn-sm" onclick="toast('Affected sessions: this exception cancels or reschedules matching class sessions.')">Affected sessions</button></td></tr>`).join('');
+  shell(`
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Source</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'Academic Calendar', sub:'Exceptions drive session generation — holidays, suspensions, makeup classes, events',
+    crumbs:'<a href="#/app/dashboard">Home</a> / Calendar',
+    actions:`<button class="btn btn-outline" onclick="toast('Calendar sync from OSAS queued.')">↻ Sync from OSAS</button>
+             <button class="btn btn-primary" onclick="toast('New exception form (illustrative).')">＋ Add exception</button>` });
+});
+
+route('/app/corrections', () => {
+  const q = [
+    ['COR-0142','Santos, Jerome D.','IT304 · Engr. Reyes','Absent → Excused','1 day', 'ok'],
+    ['COR-0144','Flores, Janna C.','IT301 · Engr. Reyes','Late → Present','2 days', 'ok'],
+    ['COR-0139','Garcia, Miguel T.','IT302 · Mr. Villanueva','Absent → Present','4 days', 'warn'],
+    ['COR-0131','Ocampo, Bea R.','GE108 · Ms. Cruz','Absent → Excused','6 days', 'late'],
+  ].map(c => `
+    <tr><td class="mono small">${c[0]}</td><td><b>${c[1]}</b></td><td class="small">${c[2]}</td><td class="small">${c[3]}</td>
+      <td><span class="badge ${c[5]==='ok'?'b-navy':c[5]==='warn'?'b-late':'b-absent'}">${c[4]} in queue</span></td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-primary btn-sm" onclick="reviewDialog('${c[0]}','approve')">✔</button>
+        <button class="btn btn-outline btn-sm" onclick="reviewDialog('${c[0]}','reject')">✖</button></td></tr>`).join('');
+  shell(`
+    <div class="banner-warn" style="margin-bottom:16px">⏳ <div><b>SLA aging:</b> requests older than 5 days are flagged red. Aim to resolve within 3 working days.</div></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Ref</th><th>Student</th><th>Class / instructor</th><th>Requested</th><th>Age</th><th></th></tr></thead><tbody>${q}</tbody></table>
+    </div>`,
+  { title:'Correction Approvals', sub:'Department-wide queue', crumbs:'<a href="#/app/dashboard">Home</a> / Corrections' });
+});
+
+/* =====================================================================
+   SUPER ADMIN PAGES
+   ===================================================================== */
+route('/app/users', () => {
+  const rows = [
+    ['System Administrator','sysadmin@lcc.edu.ph','SUPER_ADMIN','Local','Active','Now'],
+    ['Carlo T. Dizon','c.dizon@lcc.edu.ph','DEPT_ADMIN','Local','Active','2h ago'],
+    ['Maria L. Reyes','m.reyes@lcc.edu.ph','FACULTY','Local','Active','10m ago'],
+    ['Arnel P. Villanueva','a.villanueva@lcc.edu.ph','FACULTY','Local','Active','1h ago'],
+    ['Jerome D. Santos','—','STUDENT','OSAS','Active','4m ago'],
+    ['Patricia M. Cruz','p.cruz@lcc.edu.ph','FACULTY','Local','Locked','3d ago'],
+  ].map(u => `
+    <tr><td><b>${u[0]}</b><div class="small muted">${u[1]}</div></td>
+      <td><span class="badge b-navy">${u[2].replace('_',' ')}</span></td>
+      <td>${u[3]==='OSAS'?'<span class="sync-ok">✔ OSAS</span>':'<span class="badge b-gray">Local</span>'}</td>
+      <td>${u[4]==='Active'?badge('ACTIVE'):'<span class="badge b-absent">Locked</span>'}</td>
+      <td class="small">${u[5]}</td>
+      <td style="text-align:right;white-space:nowrap">
+        ${u[4]==='Locked'?`<button class="btn btn-primary btn-sm" onclick="toast('Account unlocked and reset email sent.')">Unlock</button>`:''}
+        <button class="btn btn-outline btn-sm" onclick="toast('Forced password reset queued (illustrative).')">Reset</button>
+        <button class="btn btn-ghost btn-sm" onclick="toast('Device sessions viewer (illustrative).')">Devices</button></td></tr>`).join('');
+  shell(`
+    <div class="toolbar">
+      <input type="search" placeholder="Search accounts…">
+      <select class="filter-input"><option>All roles</option><option>Super Admin</option><option>Dept Admin</option><option>Faculty</option><option>Student</option></select>
+      <select class="filter-input"><option>All statuses</option><option>Active</option><option>Locked</option><option>Deactivated</option></select>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Account</th><th>Role</th><th>Auth</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'User Management', sub:'All portal accounts · role changes are audited', crumbs:'<a href="#/app/dashboard">Home</a> / Users',
+    actions:`<button class="btn btn-primary" onclick="toast('Create-account wizard (illustrative). Students never get local accounts — they authenticate via OSAS.')">＋ Create account</button>` });
+});
+
+route('/app/terms', () => {
+  const rows = [
+    ['2026-2027','First','Aug 10 – Dec 18, 2026', true],
+    ['2025-2026','Second','Jan 12 – May 22, 2026', false],
+    ['2025-2026','First','Aug 11 – Dec 19, 2025', false],
+  ].map(t => `
+    <tr><td><b>${t[0]}</b></td><td>${t[1]} Semester</td><td class="small">${t[2]}</td>
+      <td>${t[3]?'<span class="badge b-present">● Current</span>':'<span class="badge b-gray">Archived</span>'}</td>
+      <td style="text-align:right">${t[3]?'':`<button class="btn btn-outline btn-sm" onclick="confirmDialog('Switch current term?','Dashboards, reports, and session generation will move to this term. This is a significant, audited change.',()=>toast('Current term switched.'))">Make current</button>`}</td></tr>`).join('');
+  shell(`
+    <div class="table-wrap">
+      <table><thead><tr><th>Academic year</th><th>Semester</th><th>Dates</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`,
+  { title:'Academic Terms', crumbs:'<a href="#/app/dashboard">Home</a> / Terms',
+    actions:`<button class="btn btn-primary" onclick="toast('New term form (illustrative).')">＋ New term</button>` });
+});
+
+route('/app/settings', () => {
+  const flags = [
+    ['qr-attendance','QR Attendance', true, 'Phase 1'], ['monitoring','Attendance Monitoring', true, 'Phase 1'],
+    ['reports','Reports', true, 'Phase 1'], ['notifications','Notifications', true, 'Phase 1'],
+    ['announcements','Announcements', false, 'Phase 2'], ['digital-id','Digital ID (kiosk mode)', false, 'Phase 2'],
+    ['grades','Grades', false, 'Phase 3'], ['clearance','Clearance', false, 'Phase 3'],
+  ].map(f => `
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1"><b class="small">${f[1]}</b> <span class="badge b-gray" style="margin-left:6px">${f[3]}</span>
+        <div class="small muted mono">modules.${f[0]}.enabled</div></div>
+      <span class="switch"><input type="checkbox" ${f[2]?'checked':''} onchange="toast('Feature flag saved — disabled modules 404 their routes and hide their menus.')"><span class="sl"></span></span>
+    </div>`).join('');
+  shell(`
+    <div class="tabs">
+      <button class="tab active">Attendance</button><button class="tab" onclick="toast('Tab is illustrative in this prototype.')">OSAS Integration</button>
+      <button class="tab" onclick="toast('Tab is illustrative.')">Email templates</button><button class="tab" onclick="toast('Tab is illustrative.')">Maintenance</button>
+    </div>
+    <div class="grid cols-2">
+      <div style="display:grid;gap:16px;align-self:start">
+        <div class="card card-pad">
+          <h3>Attendance rules</h3>
+          <div class="grid cols-2">
+            <div class="field"><label>Grace period (Present)</label><input value="15"> </div>
+            <div class="field"><label>Late cutoff (minutes)</label><input value="30"></div>
+            <div class="field"><label>At-risk threshold (%)</label><input value="75"></div>
+            <div class="field"><label>QR rotation interval (s)</label><input value="60"></div>
+          </div>
+          <label class="small" style="display:flex;align-items:center;gap:10px;margin:6px 0 14px">
+            <span class="switch"><input type="checkbox"><span class="sl"></span></span> Allow static QR for events (faculty must request per session)</label>
+          <button class="btn btn-primary btn-sm" onclick="toast('Attendance settings saved — change recorded in audit log.')">Save settings</button>
+        </div>
+        <div class="card card-pad">
+          <h3>OSAS sync</h3>
+          <div class="kv" style="grid-template-columns:150px 1fr">
+            <dt>Nightly sync time</dt><dd>02:00 Asia/Manila</dd>
+            <dt>Last student sync</dt><dd>Jul 21, 02:00 · <span class="sync-ok">✔ 1,987 processed</span></dd>
+            <dt>Retry policy</dt><dd>Backoff ×3, then alert admins</dd>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px">
+            <button class="btn btn-outline btn-sm" onclick="toast('Student sync queued.')">↻ Sync students</button>
+            <button class="btn btn-outline btn-sm" onclick="toast('Schedule sync queued.')">↻ Sync schedules</button>
+            <button class="btn btn-outline btn-sm" onclick="toast('Calendar sync queued.')">↻ Sync calendar</button>
+          </div>
+        </div>
+      </div>
+      <div class="card card-pad" style="align-self:start">
+        <h3>Module feature flags</h3>
+        <p class="small muted" style="margin-bottom:8px">New modules ship disabled until accepted in staging. Disabling hides all routes and UI entries.</p>
+        ${flags}
+      </div>
+    </div>`,
+  { title:'System Settings', sub:'Super Admin only · every change is audited', crumbs:'<a href="#/app/dashboard">Home</a> / Settings' });
+});
+
+route('/app/audit-logs', () => {
+  const rows = DB.auditLogs.map((l,i) => `
+    <tr style="cursor:pointer" onclick="auditDetail(${i})">
+      <td class="small" style="white-space:nowrap">${l.at}</td>
+      <td><b class="small">${l.actor}</b></td>
+      <td><span class="badge b-gray mono" style="font-weight:600">${l.action}</span></td>
+      <td class="small">${l.detail}</td>
+      <td class="small muted mono">${l.entity}</td>
+    </tr>`).join('');
+  shell(`
+    <div class="toolbar">
+      <input type="search" placeholder="Search actor, entity, action…">
+      <select class="filter-input"><option>All actions</option><option>attendance.override</option><option>settings.update</option><option>correction.approve</option><option>osas.sync</option></select>
+      <input class="filter-input" type="date" value="2026-07-21">
+      <span class="small muted">Click a row to view the before/after diff. Logs are append-only.</span>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Detail</th><th>Entity</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="pagination"><span>1–6 of 8,412</span><button class="active">1</button><button>2</button><button>3</button><button>…</button></div>
+    </div>`,
+  { title:'Audit Logs', sub:'Every auth event, override, deletion, settings change, and sync — with actor, IP, before/after',
+    crumbs:'<a href="#/app/dashboard">Home</a> / Audit logs' });
+});
+function auditDetail(i){
+  const l = DB.auditLogs[i];
+  modal(`Audit entry — ${l.action}`, `
+    <div class="kv" style="margin-bottom:16px">
+      <dt>Timestamp</dt><dd>${l.at} (Asia/Manila)</dd>
+      <dt>Actor</dt><dd><b>${l.actor}</b> · <span class="mono small">10.10.4.121</span></dd>
+      <dt>Entity</dt><dd class="mono small">${l.entity}</dd>
+      <dt>Detail</dt><dd>${l.detail}</dd>
+    </div>
+    <div class="small muted" style="margin-bottom:6px">Before → After</div>
+    <div class="audit-diff">${l.before?`<span class="del">- ${esc(l.before)}</span>\n`:''}<span class="add">+ ${esc(l.after)}</span></div>`,
+    `<button class="btn btn-primary" onclick="closeModal()">Close</button>`);
+}
+
+/* 404 */
+route('/404', () => {
+  if(S.role){
+    shell(`<div class="card empty"><div class="ic">🧭</div><b>Page not found</b><p class="small muted" style="margin-top:6px">This route doesn't exist or its module is disabled by a feature flag.</p>
+      <button class="btn btn-primary" style="margin-top:14px" onclick="nav('/app/dashboard')">Back to dashboard</button></div>`, { title:'Not found' });
+  } else nav('/');
+});
+
+/* boot */
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+{
+  "$schema_note": "Backend architecture definition — Node.js API for the Legacy IT Student Portal",
+  "runtime": {
+    "platform": "Node.js 20 LTS",
+    "language": "TypeScript 5 (strict mode)",
+    "framework": "Express 4",
+    "package_manager": "pnpm (workspace member: apps/api)",
+    "process_model": "Single process per container; horizontal scale via multiple containers + Socket.IO Redis adapter when needed"
+  },
+  "architecture": {
+    "style": "Layered modular monolith",
+    "layers": {
+      "routes": "Express routers per module; bind paths to controllers; apply per-route middleware (auth, RBAC, validation, rate limits)",
+      "controllers": "Translate HTTP ⇄ service calls; no business logic; shape responses",
+      "services": "All business rules (BR-01…BR-16); transactional orchestration; emit domain events (notifications, audit)",
+      "repositories": "Prisma data access only; no business rules",
+      "infrastructure": "OSAS client, mailer, storage client, realtime gateway, job scheduler, crypto utilities"
+    },
+    "directory_structure": {
+      "apps/api/src/": [
+        "app.ts (express wiring), server.ts (bootstrap), config/ (env parsing via zod)",
+        "modules/<key>/ → <key>.routes.ts, <key>.controller.ts, <key>.service.ts, <key>.repository.ts, <key>.schemas.ts",
+        "middleware/ → authenticate.ts, authorize.ts, validate.ts, rateLimit.ts, errorHandler.ts, requestLogger.ts",
+        "infra/ → prisma.ts, osasClient.ts, mailer.ts, storage.ts, realtime.ts, jobs.ts, qrCrypto.ts",
+        "lib/ → pagination.ts, dates.ts (UTC↔Asia/Manila), apiError.ts, audit.ts",
+        "prisma/ → schema.prisma, migrations/, seed.ts"
+      ]
+    }
+  },
+  "key_libraries": {
+    "validation": "zod (shared schemas from packages/shared; validate() middleware parses body/query/params, strips unknown keys)",
+    "orm": "Prisma (PostgreSQL 16)",
+    "auth": "jsonwebtoken (access), crypto-random refresh tokens hashed with SHA-256 at rest, argon2 for passwords",
+    "realtime": "socket.io",
+    "logging": "pino + pino-http (structured JSON; request IDs)",
+    "security": "helmet, cors (allowlist), express-rate-limit",
+    "email": "nodemailer (SMTP, provider-agnostic) with MJML-compiled templates",
+    "exports": "exceljs (XLSX), pdfmake (PDF), native CSV",
+    "jobs": "node-cron (in-process scheduler)",
+    "qr_payload": "Node crypto — AES-256-GCM encryption for QR payloads, HMAC-SHA256-derived rotating tokens",
+    "testing": "vitest + supertest (see ../testing/testing-definition.json)"
+  },
+  "authentication_flow": {
+    "student_login": [
+      "POST /auth/login { studentId|email, password } with role hint 'student'",
+      "API calls OSAS verify endpoint (server-to-server) with the credentials",
+      "OSAS returns identity + status; status must be active/current — alumni/inactive rejected (403 STUDENT_INACTIVE)",
+      "Profile upserted locally (student_id, program, year, section, status, photo); osas_last_synced_at stamped",
+      "Access JWT (15 min) issued + rotating refresh cookie (7 days, httpOnly, Secure, SameSite=Lax); device info recorded"
+    ],
+    "staff_login": [
+      "POST /auth/login with local credentials → argon2 verify → lockout counter on failure (5 tries / 15 min lock)",
+      "Optional email OTP step for admin roles when enabled",
+      "Same token issuance as students"
+    ],
+    "refresh": "POST /auth/refresh — rotate refresh token (old revoked, reuse detection revokes the whole family), new access JWT",
+    "logout": "Refresh token revoked; cookie cleared"
+  },
+  "qr_session_engine": {
+    "start": "Faculty POST /sessions {offeringId, scheduleId} → validates assignment + no duplicate open session → creates class_session with a random per-session secret (server-only)",
+    "token_rotation": "token = HMAC-SHA256(sessionSecret, floor(now/60s)) truncated; payload {sessionId, token, issuedAt} encrypted with AES-256-GCM → pushed to faculty room via Socket.IO every 60s (GET fallback for polling)",
+    "static_mode": "If session.qr_mode = 'static' (admin-allowed, per-session), a single non-rotating encrypted payload is issued and the session is flagged reduced_security for reports",
+    "scan": "Student POST /attendance/scan {payload} → decrypt + integrity check → window check (±1) → session open + before cutoff → enrollment check → INSERT attendance_record (unique(session_id, student_id) makes duplicates a no-op 409 handled as 'already recorded') → status computed from server clock vs grace/cutoff → Socket.IO event to session room",
+    "close": "Manual close or auto-close cron at cutoff → unscanned enrolled students bulk-marked Absent → summary snapshot stored → room closed"
+  },
+  "background_jobs": [
+    { "name": "session-autoclose", "schedule": "every minute", "action": "Close open sessions past cutoff; auto-mark absents (BR-14)" },
+    { "name": "osas-nightly-sync", "schedule": "daily 02:00 Asia/Manila", "action": "Sync students, schedules, calendar exceptions from OSAS; write osas_sync_logs; alert admins on failure" },
+    { "name": "session-pregen", "schedule": "daily 03:00", "action": "Generate today's class_sessions from schedules minus calendar exceptions (holidays/suspensions); add makeup/special-event sessions (BR-15)" },
+    { "name": "at-risk-scan", "schedule": "daily 18:00", "action": "Detect 3-consecutive or ≥20% absences; notify student + adviser (BR-07)" },
+    { "name": "token-cleanup", "schedule": "daily 04:00", "action": "Purge expired refresh tokens and stale notifications (>90 days read)" }
+  ],
+  "realtime": {
+    "transport": "Socket.IO on /live namespace, JWT-authenticated handshake",
+    "rooms": {
+      "session:{id}": "Faculty roster view — receives scan events {studentId, name, status, scannedAt} and rotating QR payloads (faculty sockets only)",
+      "user:{id}": "Personal notifications"
+    },
+    "fallback": "Roster falls back to 10s polling if the socket drops"
+  },
+  "error_handling": {
+    "shape": "{ error: { code, message, details? } } — machine-readable code + human message; zod issues in details",
+    "codes_examples": ["AUTH_INVALID_CREDENTIALS", "STUDENT_INACTIVE", "SESSION_CLOSED", "TOKEN_EXPIRED_WINDOW", "NOT_ENROLLED", "ALREADY_RECORDED", "FORBIDDEN_NOT_OWNER", "OSAS_UNAVAILABLE", "VALIDATION_FAILED", "RATE_LIMITED"],
+    "policy": "Services throw typed ApiError; central errorHandler maps to HTTP status, logs with request ID; 5xx never leak internals"
+  },
+  "conventions": {
+    "api_style": "REST, versioned at /api/v1, plural nouns, kebab-case paths, camelCase JSON",
+    "pagination": "?page=&pageSize= (max 100) → { data, meta: { page, pageSize, total, totalPages } }",
+    "filtering": "Explicit whitelisted query params per endpoint; free-text ?search= where supported",
+    "dates": "ISO-8601 UTC in/out; conversion to Asia/Manila is presentation-only",
+    "ids": "UUID v7 everywhere",
+    "soft_delete": "deleted_at column; default scopes exclude deleted rows",
+    "audit": "audit() helper called in services for every mutating action with actor, entity, before/after"
+  }
+}

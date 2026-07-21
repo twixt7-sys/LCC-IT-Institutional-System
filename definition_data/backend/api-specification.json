@@ -1,0 +1,113 @@
+{
+  "$schema_note": "REST API specification — base /api/v1. Auth column: P=Public, S=Student, F=Faculty, DA=Dept Admin, SA=Super Admin. All protected routes require Bearer access JWT.",
+  "global": {
+    "base_url": "/api/v1",
+    "content_type": "application/json (multipart/form-data for uploads)",
+    "auth_header": "Authorization: Bearer <accessToken>",
+    "refresh_cookie": "rt (httpOnly, Secure, SameSite=Lax, path=/api/v1/auth)",
+    "rate_limits": { "global": "300 req / 15 min / IP", "auth_login": "10 req / 15 min / IP", "attendance_scan": "10 req / min / user", "exports": "10 req / hour / user" },
+    "error_shape": { "error": { "code": "MACHINE_CODE", "message": "Human readable", "details": "optional (validation issues, etc.)" } }
+  },
+  "endpoints": {
+    "auth": [
+      { "method": "POST", "path": "/auth/login", "auth": "P", "body": "{ identifier, password, role? }", "notes": "Students verified via OSAS (active status required); staff verified locally; returns { user, accessToken } + sets refresh cookie" },
+      { "method": "POST", "path": "/auth/refresh", "auth": "P (cookie)", "notes": "Rotates refresh token; reuse detection revokes token family" },
+      { "method": "POST", "path": "/auth/logout", "auth": "S/F/DA/SA", "notes": "Revokes current refresh token" },
+      { "method": "GET", "path": "/auth/me", "auth": "S/F/DA/SA", "notes": "Current user + role profile" },
+      { "method": "GET", "path": "/auth/sessions", "auth": "S/F/DA/SA", "notes": "List active device sessions" },
+      { "method": "DELETE", "path": "/auth/sessions/:id", "auth": "S/F/DA/SA", "notes": "Revoke a device session" },
+      { "method": "POST", "path": "/auth/forgot-password", "auth": "P", "notes": "Staff local accounts only — students use OSAS credentials" },
+      { "method": "POST", "path": "/auth/reset-password", "auth": "P", "notes": "Single-use token, 30 min expiry" }
+    ],
+    "students": [
+      { "method": "GET", "path": "/students", "auth": "F/DA/SA", "query": "page,pageSize,search,courseId,yearLevel,sectionId,status", "notes": "Faculty see only students in their classes" },
+      { "method": "POST", "path": "/students", "auth": "DA/SA", "notes": "Manual create (edge cases outside OSAS)" },
+      { "method": "POST", "path": "/students/import", "auth": "DA/SA", "notes": "CSV upload → row-level validation preview → commit" },
+      { "method": "GET", "path": "/students/:id", "auth": "S(own)/F/DA/SA" },
+      { "method": "PATCH", "path": "/students/:id", "auth": "DA/SA", "notes": "Local fields only (adviser, contact); OSAS-synced fields are read-only" },
+      { "method": "DELETE", "path": "/students/:id", "auth": "DA/SA", "notes": "Soft delete" },
+      { "method": "GET", "path": "/students/:id/attendance", "auth": "S(own)/F/DA/SA", "query": "termId,offeringId,from,to", "notes": "History + per-subject summary" }
+    ],
+    "faculty": [
+      { "method": "GET", "path": "/faculty", "auth": "DA/SA" },
+      { "method": "POST", "path": "/faculty", "auth": "DA/SA", "notes": "Creates linked local user account; forces password change at first login" },
+      { "method": "GET", "path": "/faculty/:id", "auth": "F(own)/DA/SA" },
+      { "method": "PATCH", "path": "/faculty/:id", "auth": "F(own limited)/DA/SA" },
+      { "method": "DELETE", "path": "/faculty/:id", "auth": "DA/SA" },
+      { "method": "GET", "path": "/faculty/:id/offerings", "auth": "F(own)/DA/SA", "query": "termId", "notes": "Assigned classes/events, sections, rooms" }
+    ],
+    "catalog": [
+      { "method": "GET|POST", "path": "/subjects", "auth": "R: F/DA/SA · W: DA/SA" },
+      { "method": "GET|PATCH|DELETE", "path": "/subjects/:id", "auth": "R: F/DA/SA · W: DA/SA" },
+      { "method": "GET|POST", "path": "/sections", "auth": "R: all authed · W: DA/SA" },
+      { "method": "GET|PATCH|DELETE", "path": "/sections/:id", "auth": "W: DA/SA" },
+      { "method": "GET|POST", "path": "/offerings", "auth": "R: F/DA/SA · W: DA/SA", "notes": "subject+section+faculty+term; optional per-offering grace/cutoff overrides" },
+      { "method": "GET|PATCH|DELETE", "path": "/offerings/:id", "auth": "W: DA/SA" },
+      { "method": "GET|POST", "path": "/offerings/:id/schedules", "auth": "W: DA/SA", "notes": "Conflict validation: section, faculty, room overlaps rejected" },
+      { "method": "POST", "path": "/offerings/:id/enrollments", "auth": "DA/SA", "notes": "Bulk by section or student list" },
+      { "method": "DELETE", "path": "/enrollments/:id", "auth": "DA/SA", "notes": "Marks Dropped; history preserved" },
+      { "method": "GET|POST", "path": "/calendar-exceptions", "auth": "R: all authed · W: DA/SA", "notes": "Holidays, suspensions, makeup classes, special events" },
+      { "method": "PATCH|DELETE", "path": "/calendar-exceptions/:id", "auth": "DA/SA" }
+    ],
+    "sessions": [
+      { "method": "GET", "path": "/sessions", "auth": "F/DA/SA", "query": "offeringId,date,status" },
+      { "method": "POST", "path": "/sessions", "auth": "F(assigned)", "body": "{ offeringId, scheduleId, qrMode? }", "notes": "qrMode 'static' only if allowed in settings; flagged reduced-security" },
+      { "method": "GET", "path": "/sessions/:id", "auth": "F(own)/DA/SA + S(enrolled, limited)", "notes": "Details + roster with live statuses" },
+      { "method": "GET", "path": "/sessions/:id/qr-token", "auth": "F(own)", "notes": "Current encrypted rotating payload; also pushed via Socket.IO every 60s" },
+      { "method": "POST", "path": "/sessions/:id/close", "auth": "F(own)/DA/SA", "notes": "Auto-marks unscanned as Absent; stores summary" },
+      { "method": "POST", "path": "/sessions/:id/cancel", "auth": "F(own)/DA/SA", "notes": "No absents recorded; reason required" }
+    ],
+    "attendance": [
+      { "method": "POST", "path": "/attendance/scan", "auth": "S", "body": "{ payload }", "notes": "Encrypted QR payload; validation chain: decrypt → window(±1 of 60s) → session open/cutoff → enrolled → not duplicate; returns { status: Present|Late, scannedAt }; retries after failed reads are safe" },
+      { "method": "GET", "path": "/attendance/records", "auth": "F(own)/DA/SA", "query": "sessionId|offeringId|studentId,from,to,status" },
+      { "method": "POST", "path": "/attendance/records", "auth": "F(own)/DA/SA", "body": "{ sessionId, studentId, status, reason }", "notes": "Manual attendance for technical issues; audited" },
+      { "method": "PATCH", "path": "/attendance/records/:id", "auth": "F(own)/DA/SA", "body": "{ status, reason }", "notes": "Override; reason mandatory; before/after audited" },
+      { "method": "POST", "path": "/attendance/corrections", "auth": "S", "body": "{ recordId, requestedStatus, reason, attachment? }" },
+      { "method": "GET", "path": "/attendance/corrections", "auth": "S(own)/F(own classes)/DA/SA", "query": "status,offeringId" },
+      { "method": "PATCH", "path": "/attendance/corrections/:id", "auth": "F(own)/DA/SA", "body": "{ decision: approved|rejected, note? }" }
+    ],
+    "reports": [
+      { "method": "GET", "path": "/reports/session/:id", "auth": "F(own)/DA/SA", "notes": "Session sheet: roster, statuses, scan times, totals" },
+      { "method": "GET", "path": "/reports/student/:id", "auth": "S(own)/F/DA/SA", "query": "termId,range=daily|weekly|monthly|semester" },
+      { "method": "GET", "path": "/reports/offering/:id/summary", "auth": "F(own)/DA/SA", "query": "range" },
+      { "method": "GET", "path": "/reports/instructor/:id", "auth": "F(own)/DA/SA", "notes": "Per-instructor consolidated attendance stats" },
+      { "method": "GET", "path": "/reports/at-risk", "auth": "F/DA/SA", "query": "termId,threshold" },
+      { "method": "GET", "path": "/reports/department", "auth": "DA/SA", "query": "range,courseId,yearLevel" },
+      { "method": "POST", "path": "/reports/export", "auth": "F/DA/SA", "body": "{ report, params, format: csv|xlsx|pdf }", "notes": "Async for large ranges — delivered via notification with download link" }
+    ],
+    "dashboard": [
+      { "method": "GET", "path": "/dashboard", "auth": "S/F/DA/SA", "notes": "Role-shaped payload: student (next class, rates, warnings) / faculty (today's classes, live counts, at-risk) / admin (KPIs, trends, comparisons)" }
+    ],
+    "notifications": [
+      { "method": "GET", "path": "/notifications", "auth": "S/F/DA/SA", "query": "unreadOnly,page" },
+      { "method": "PATCH", "path": "/notifications/:id/read", "auth": "S/F/DA/SA" },
+      { "method": "PATCH", "path": "/notifications/read-all", "auth": "S/F/DA/SA" },
+      { "method": "GET|PATCH", "path": "/notifications/preferences", "auth": "S/F/DA/SA" },
+      { "method": "POST", "path": "/notifications/broadcast", "auth": "DA/SA", "body": "{ audience, title, body }" }
+    ],
+    "admin": [
+      { "method": "GET|POST", "path": "/users", "auth": "SA (DA: non-admin only)" },
+      { "method": "PATCH|DELETE", "path": "/users/:id", "auth": "SA (DA: non-admin only)" },
+      { "method": "GET|POST|PATCH", "path": "/terms", "auth": "R: all authed · W: SA" },
+      { "method": "GET|PATCH", "path": "/settings", "auth": "R: DA/SA · W: SA" },
+      { "method": "GET", "path": "/audit-logs", "auth": "SA (DA: dept scope)", "query": "actor,entity,action,from,to,page" }
+    ],
+    "integrations_osas": [
+      { "method": "GET", "path": "/integrations/osas/status", "auth": "DA/SA", "notes": "Connection health + last sync logs" },
+      { "method": "POST", "path": "/integrations/osas/sync/students", "auth": "DA/SA", "notes": "Manual trigger; nightly cron otherwise" },
+      { "method": "POST", "path": "/integrations/osas/sync/schedules", "auth": "DA/SA" },
+      { "method": "POST", "path": "/integrations/osas/sync/calendar", "auth": "DA/SA", "notes": "Holidays, suspensions, makeup classes, special events" }
+    ],
+    "system": [
+      { "method": "GET", "path": "/healthz", "auth": "P", "notes": "Liveness: { status, db, osas, uptime }" }
+    ]
+  },
+  "websocket": {
+    "namespace": "/live",
+    "auth": "Access JWT in handshake auth payload",
+    "events": {
+      "server_to_client": ["qr:rotate (faculty in session room)", "attendance:recorded (session room)", "session:closed", "notification:new (user room)"],
+      "client_to_server": ["session:join { sessionId } (authorization checked)", "session:leave"]
+    }
+  }
+}

@@ -1,0 +1,327 @@
+{
+  "System": {
+    "name": "Legacy IT Student Portal",
+    "code_name": "LCC-IT-Institutional-System",
+    "type": "Web application (SPA frontend + REST API backend)",
+    "primary_module": "QR Attendance",
+    "architecture": "Modular monolith — React SPA + Node.js/Express API + PostgreSQL, integrated with the university OSAS API for student identity, profiles, and schedules",
+    "expandable": true,
+    "target_users": "IT Department students, faculty, and administrators",
+    "platforms": ["Desktop web", "Mobile web (responsive, PWA-ready)"]
+  },
+
+  "Objectives": {
+    "primary": "Digitize and secure class attendance through rotating QR codes with real-time monitoring",
+    "secondary": [
+      "Centralize student, faculty, subject, and section records",
+      "Provide role-specific dashboards and accurate exportable reports",
+      "Reduce attendance fraud (proxy scanning, screenshot sharing) via token rotation and server-side validation",
+      "Lay a modular foundation so future portal modules (grades, clearance, etc.) plug in cleanly"
+    ],
+    "success_metrics": [
+      "Attendance recorded in under 5 seconds per student",
+      "Zero duplicate attendance records (enforced by DB constraint)",
+      "Reports generated in under 10 seconds for a full term",
+      "99% uptime during class hours"
+    ]
+  },
+
+  "User Roles": {
+    "Super Admin": "IT system owner. Full access to all modules, settings, users, and audit logs.",
+    "Department Admin": "Manages department data: students, faculty, subjects, sections, offerings, schedules; approves corrections; runs reports.",
+    "Faculty": "Runs class sessions, displays QR codes, monitors live attendance, overrides statuses with reasons, exports own class reports.",
+    "Student": "Scans QR to log attendance, views own records and summaries, files correction requests, receives notifications.",
+    "Guest": "Unauthenticated visitor. Sees only the public landing page and login."
+  },
+
+  "Permissions": {
+    "matrix_legend": "C=Create, R=Read, U=Update, D=Delete, X=Execute/Special",
+    "users_accounts": { "Super Admin": "CRUD", "Department Admin": "CRU (non-admin accounts)", "Faculty": "R (own)", "Student": "R/U (own profile)", "Guest": "-" },
+    "students": { "Super Admin": "CRUD", "Department Admin": "CRUD", "Faculty": "R (own classes)", "Student": "R (self)", "Guest": "-" },
+    "faculty": { "Super Admin": "CRUD", "Department Admin": "CRUD", "Faculty": "R/U (own profile)", "Student": "-", "Guest": "-" },
+    "subjects_sections_offerings": { "Super Admin": "CRUD", "Department Admin": "CRUD", "Faculty": "R (assigned)", "Student": "R (enrolled)", "Guest": "-" },
+    "class_sessions": { "Super Admin": "CRUD", "Department Admin": "R", "Faculty": "C/R/U/X (own: start, close, QR)", "Student": "R (enrolled)", "Guest": "-" },
+    "attendance_records": { "Super Admin": "CRUD", "Department Admin": "R/U (approve corrections)", "Faculty": "R/U (own classes, override w/ reason)", "Student": "R (own) + X (scan)", "Guest": "-" },
+    "reports": { "Super Admin": "R/X (all)", "Department Admin": "R/X (department)", "Faculty": "R/X (own classes)", "Student": "R (own summary)", "Guest": "-" },
+    "settings": { "Super Admin": "CRUD", "Department Admin": "R", "Faculty": "-", "Student": "-", "Guest": "-" },
+    "audit_logs": { "Super Admin": "R", "Department Admin": "R (department scope)", "Faculty": "-", "Student": "-", "Guest": "-" }
+  },
+
+  "Authentication": {
+    "students": {
+      "method": "Single sign-on with university credentials via the OSAS API — no separate registration; accounts already exist in OSAS",
+      "verification": "Credentials and student status checked against the university database through the OSAS API at every login",
+      "eligibility": "Current, active students only — alumni and inactive students are rejected (OSAS status check before granting access)",
+      "profile_sync": "student_id, program, year, section, status, and profile picture pulled/refreshed from OSAS on login"
+    },
+    "faculty_admin": {
+      "method": "Local email + password accounts provisioned by admins",
+      "login_identifier": "Email or Employee ID",
+      "password_hashing": "argon2id",
+      "first_login": "Force password change on provisioned accounts",
+      "password_reset": "Email link, single-use token, 30-minute expiry",
+      "optional_2fa": "Email OTP for Super Admin / Department Admin"
+    },
+    "session_strategy": "JWT access token (15 min, memory) + rotating refresh token (7 days, httpOnly Secure cookie) for all roles once verified",
+    "lockout": "5 failed attempts → 15-minute lock; logged to login_logs",
+    "device_tracking": "Each refresh token records device/user-agent info; sessions are listable and revocable per device",
+    "logout": "Refresh token revoked server-side; cookie cleared"
+  },
+
+  "Navigation": {
+    "public": ["Landing", "Login", "Forgot Password"],
+    "student": ["Dashboard", "My Schedule", "Scan Attendance", "My Attendance", "Notifications", "Profile"],
+    "faculty": ["Dashboard", "My Classes", "Class Session (Live QR + roster)", "Attendance Records", "Correction Requests", "Reports", "Notifications", "Profile"],
+    "department_admin": ["Dashboard", "Students", "Faculty", "Subjects", "Sections", "Class Offerings", "Schedules", "Enrollments", "Attendance Monitoring", "Correction Approvals", "Reports", "Notifications", "Profile"],
+    "super_admin": ["Everything in Department Admin", "User Management", "Roles & Permissions", "Academic Terms", "System Settings", "Audit Logs", "Module Toggles"],
+    "layout": "Collapsible sidebar (desktop) / bottom-sheet drawer (mobile) + topbar with search, notifications bell, theme toggle, and profile menu"
+  },
+
+  "Modules": {
+    "Authentication": "Login, logout, refresh, password reset, account lockout, optional OTP",
+    "Student Management": "CRUD, bulk CSV import, photo upload, status lifecycle, section assignment",
+    "Faculty Management": "CRUD, employment info, subject assignment view",
+    "Subject Management": "CRUD subjects (code, title, units, type lecture/lab), curriculum tagging",
+    "Section Management": "CRUD sections per course/year, capacity, adviser assignment",
+    "QR Attendance": "Session lifecycle (start/close), dynamic QR regenerating every minute (static option for events), student scanner, server-side validation, duplicate prevention",
+    "OSAS Integration": "Connects to the university OSAS API: student SSO/eligibility checks, profile sync (ID, program, year, section, status, photo), weekly schedule import, and calendar exceptions (holidays, suspensions, makeup classes, special events)",
+    "Attendance Monitoring": "Live roster during session, real-time present/late counts, historical browsing, manual override, correction workflow",
+    "Reports": "Per-session sheets, per-student history, summaries, at-risk lists; PDF/XLSX/CSV export",
+    "Dashboard": "Role-specific widgets, charts (Recharts), quick actions",
+    "Notifications": "In-app real-time (Socket.IO) + email (Nodemailer); per-user read state and preferences",
+    "Settings": "Academic term, late/absence thresholds, QR rotation interval, email templates, module toggles"
+  },
+
+  "Features": {
+    "qr_attendance": [
+      "Faculty starts a session → fullscreen dynamic QR (regenerates every 1 minute) for projector display; one QR per class or event",
+      "QR payload is encrypted and time-limited; screenshots expire within the minute and fail server validation",
+      "Static QR option for specific events/classes (admin-enabled, reduced security)",
+      "Student scans with phone camera (html5-qrcode) → instant confirmation with status (Present/Late)",
+      "Scan retries allowed within a short time frame for failed reads; only the first valid scan is recorded (duplicate prevention)",
+      "No GPS or classroom location verification — the dynamic QR is the presence proof",
+      "Server-authoritative timestamps; client clock never trusted",
+      "Auto-close session at scheduled cutoff time (configurable); manual attendance by faculty for students with technical issues",
+      "Auto-mark unscanned enrolled students as Absent on close"
+    ],
+    "monitoring": [
+      "Live roster updates via WebSocket as scans arrive",
+      "Color-coded statuses (Present/Late/Absent/Excused)",
+      "Session summary snapshot saved on close"
+    ],
+    "corrections": [
+      "Student files request with reason and optional attachment",
+      "Faculty/Admin approves or rejects; every change audited"
+    ],
+    "quality_of_life": [
+      "Global search (students, subjects, sections)",
+      "Dark/light theme, keyboard-accessible UI, WCAG AA contrast",
+      "Bulk CSV import with validation preview",
+      "Empty/loading/error states standardized across pages",
+      "PWA install for quick student access to the scanner"
+    ]
+  },
+
+  "Business Rules": {
+    "BR-01": "A student can have exactly one attendance record per class session (DB unique constraint on session_id + student_id).",
+    "BR-02": "Scans are only valid while the session is open and the rotating token is within its validity window (60s, ±1 window).",
+    "BR-03": "Scan within grace period (default 15 min from session start) = Present; after grace period = Late; after cutoff (default 30 min) or never = Absent.",
+    "BR-04": "Only enrolled students of the offering can record attendance for its sessions.",
+    "BR-05": "Manual overrides require a reason and are written to the audit log with before/after values.",
+    "BR-06": "Excused status can only be set via approved correction or by faculty/admin, never by scanning.",
+    "BR-07": "3 consecutive absences or ≥20% total absences triggers an at-risk notification to the student and adviser.",
+    "BR-08": "Deactivated/dropped students keep historical records but cannot log new attendance.",
+    "BR-09": "Faculty can only manage sessions for offerings assigned to them for the active term.",
+    "BR-10": "All destructive admin actions use soft delete; hard delete is Super Admin only and audited.",
+    "BR-11": "Late/grace thresholds are configurable per subject offering, falling back to system defaults.",
+    "BR-12": "Reports always compute from raw attendance_records at request time (no stale denormalized truth).",
+    "BR-13": "Student login requires an active/current status in OSAS; alumni and inactive students are rejected at authentication time.",
+    "BR-14": "No attendance can be submitted after the session cutoff time (except staff manual entries, which are audited).",
+    "BR-15": "Sessions are not generated on holidays or suspension dates from the calendar exceptions; makeup classes and special events generate extra sessions.",
+    "BR-16": "Static QR mode is per-session, requires admin enablement, and is flagged in reports as reduced-security."
+  },
+
+  "Database Entities": {
+    "users": ["id (uuid)", "email (unique)", "password_hash", "role (enum)", "is_active", "last_login_at", "created_at", "updated_at", "deleted_at"],
+    "students": ["id", "user_id (FK unique)", "student_id (unique, OSAS format)", "first_name", "middle_name", "last_name", "contact_number", "course_id (FK, program from OSAS)", "year_level", "section_id (FK)", "status (enum, synced from OSAS)", "photo_url (from OSAS)", "adviser_faculty_id (FK, local-only)", "osas_last_synced_at", "timestamps"],
+    "faculty": ["id", "user_id (FK unique)", "employee_id (unique)", "first_name", "middle_name", "last_name", "contact_number", "position", "employment_type", "status", "timestamps"],
+    "courses": ["id", "code (BSIT)", "name", "is_active"],
+    "sections": ["id", "course_id (FK)", "name (BSIT-3A)", "year_level", "capacity", "adviser_faculty_id (FK, nullable)"],
+    "subjects": ["id", "code (unique)", "title", "units", "type (Lecture/Lab/Both)", "is_active"],
+    "academic_terms": ["id", "academic_year", "semester", "start_date", "end_date", "is_current"],
+    "class_offerings": ["id", "subject_id (FK)", "section_id (FK)", "faculty_id (FK)", "term_id (FK)", "grace_minutes (nullable)", "late_cutoff_minutes (nullable)"],
+    "schedules": ["id", "offering_id (FK)", "day_of_week", "start_time", "end_time", "room", "type (Lecture/Lab)", "source (Local/OSAS)"],
+    "calendar_exceptions": ["id", "term_id (FK)", "date", "type (Holiday/Suspension/MakeupClass/SpecialEvent)", "title", "affects (All/Section/Offering)", "target_id (nullable)", "source (Local/OSAS)"],
+    "osas_sync_logs": ["id", "sync_type (Students/Schedules/Calendar)", "started_at", "finished_at", "status (Success/Partial/Failed)", "records_processed", "error_details (jsonb)"],
+    "enrollments": ["id", "offering_id (FK)", "student_id (FK)", "enrolled_at", "status (Enrolled/Dropped)", "UNIQUE(offering_id, student_id)"],
+    "class_sessions": ["id", "offering_id (FK)", "schedule_id (FK)", "date", "started_at", "closed_at", "status (Open/Closed/Cancelled)", "qr_secret (server-only)", "opened_by (FK faculty)"],
+    "attendance_records": ["id", "session_id (FK)", "student_id (FK)", "status (enum)", "scanned_at (nullable)", "marked_by (System/Faculty/Admin)", "override_reason (nullable)", "UNIQUE(session_id, student_id)"],
+    "attendance_corrections": ["id", "record_id (FK)", "requested_by (FK student)", "requested_status", "reason", "attachment_url", "status (Pending/Approved/Rejected)", "reviewed_by (FK)", "reviewed_at"],
+    "notifications": ["id", "user_id (FK)", "type", "title", "body", "data (jsonb)", "read_at", "created_at"],
+    "refresh_tokens": ["id", "user_id (FK)", "token_hash", "device_info", "expires_at", "revoked_at"],
+    "audit_logs": ["id", "actor_user_id (FK)", "action", "entity", "entity_id", "before (jsonb)", "after (jsonb)", "ip_address", "created_at"],
+    "settings": ["key (pk)", "value (jsonb)", "updated_by", "updated_at"]
+  },
+
+  "Relationships": {
+    "users-students": "1:1 (role profile)",
+    "users-faculty": "1:1 (role profile)",
+    "courses-sections": "1:N",
+    "sections-students": "1:N",
+    "subjects-class_offerings": "1:N",
+    "faculty-class_offerings": "1:N",
+    "academic_terms-class_offerings": "1:N",
+    "class_offerings-schedules": "1:N",
+    "class_offerings-class_sessions": "1:N",
+    "class_offerings-enrollments-students": "N:M via enrollments",
+    "class_sessions-attendance_records": "1:N",
+    "students-attendance_records": "1:N",
+    "attendance_records-attendance_corrections": "1:N",
+    "users-notifications": "1:N",
+    "users-refresh_tokens": "1:N",
+    "users-audit_logs": "1:N (as actor)"
+  },
+
+  "API Endpoints": {
+    "base": "/api/v1",
+    "auth": [
+      "POST /auth/login", "POST /auth/logout", "POST /auth/refresh",
+      "POST /auth/forgot-password", "POST /auth/reset-password", "GET /auth/me"
+    ],
+    "students": [
+      "GET /students (paginated, filter: course/year/section/status, search)",
+      "POST /students", "POST /students/import (CSV)",
+      "GET /students/:id", "PATCH /students/:id", "DELETE /students/:id (soft)",
+      "GET /students/:id/attendance (history + summary)"
+    ],
+    "faculty": ["GET /faculty", "POST /faculty", "GET /faculty/:id", "PATCH /faculty/:id", "DELETE /faculty/:id", "GET /faculty/:id/offerings"],
+    "catalog": [
+      "CRUD /subjects", "CRUD /sections", "CRUD /offerings", "CRUD /schedules",
+      "POST /offerings/:id/enrollments (bulk)", "DELETE /enrollments/:id"
+    ],
+    "sessions": [
+      "POST /sessions (start: offeringId, scheduleId)",
+      "GET /sessions/:id (details + live roster)",
+      "GET /sessions/:id/qr-token (current rotating token — faculty only, polled/pushed)",
+      "POST /sessions/:id/close", "GET /sessions?offeringId=&date="
+    ],
+    "attendance": [
+      "POST /attendance/scan { sessionId, token } (student)",
+      "GET /attendance/records?sessionId= | studentId= | offeringId=",
+      "PATCH /attendance/records/:id (override, reason required)",
+      "POST /attendance/corrections", "GET /attendance/corrections?status=",
+      "PATCH /attendance/corrections/:id (approve/reject)"
+    ],
+    "reports": [
+      "GET /reports/session/:id", "GET /reports/student/:id?termId=",
+      "GET /reports/offering/:id/summary", "GET /reports/at-risk?termId=",
+      "GET /reports/export?type=&format=pdf|xlsx|csv"
+    ],
+    "dashboard": ["GET /dashboard (role-aware payload)"],
+    "notifications": ["GET /notifications", "PATCH /notifications/:id/read", "PATCH /notifications/read-all", "GET/PATCH /notifications/preferences"],
+    "admin": ["CRUD /users", "GET /audit-logs", "GET/PATCH /settings", "CRUD /terms", "CRUD /calendar-exceptions"],
+    "integrations": [
+      "POST /integrations/osas/sync/students (manual trigger; also runs nightly)",
+      "POST /integrations/osas/sync/schedules",
+      "POST /integrations/osas/sync/calendar",
+      "GET /integrations/osas/status (connection health + last sync logs)"
+    ],
+    "realtime": "Socket.IO namespace /live — rooms: session:{id} (scan events), user:{id} (notifications)"
+  },
+
+  "Validation Rules": {
+    "engine": "zod schemas shared conceptually between frontend forms (react-hook-form resolver) and backend middleware",
+    "examples": {
+      "email": "Valid format, lowercase, max 254 chars, unique on create",
+      "student_id": "Regex ^\\d{4}-\\d{5}$, unique",
+      "password": "Min 8, at least 1 upper, 1 lower, 1 number",
+      "names": "1-80 chars, letters/spaces/hyphens/apostrophes",
+      "contact_number": "PH mobile format ^09\\d{9}$ (configurable)",
+      "units": "Integer 1-6",
+      "schedule": "end_time > start_time; no overlapping schedules for the same section, faculty, or room",
+      "scan_payload": "sessionId uuid + token string; everything else server-derived",
+      "override_reason": "Required, 5-500 chars",
+      "csv_import": "Row-level validation with per-row error report before commit (all-or-nothing transaction optional)"
+    },
+    "general": [
+      "All input validated at the API boundary; unknown keys stripped",
+      "IDs validated as UUIDs; pagination capped (max 100 per page)",
+      "File uploads: images ≤ 2MB (jpg/png/webp), attachments ≤ 5MB (pdf/jpg/png)"
+    ]
+  },
+
+  "Security": {
+    "transport": "HTTPS only; HSTS in production",
+    "headers": "helmet defaults + strict CSP for the SPA",
+    "auth_tokens": "Short-lived access JWT; rotating refresh tokens hashed at rest; revocation on logout/password change",
+    "rbac": "Middleware role checks + resource-ownership checks on every protected route",
+    "rate_limiting": "Global 300 req/15min per IP; /auth/login 10 req/15min; /attendance/scan 10 req/min per user",
+    "input_safety": "Prisma parameterized queries (no raw SQL), zod validation, output encoding in React (XSS-safe by default)",
+    "csrf": "SameSite=Lax cookies + custom header requirement on state-changing requests",
+    "qr_fraud": "Encrypted (AES-256-GCM), time-limited rotating QR payloads (60s regeneration), single-use per student per session, server timestamps — screenshots and replays fail validation",
+    "device_tracking": "Refresh tokens store device/user-agent metadata; users and admins can view and revoke sessions per device",
+    "osas_api": "Server-to-server only (credentials never reach the browser); API keys in env vars; responses validated with zod before persistence; sync failures logged and alerted",
+    "uploads": "MIME + magic-byte checks, randomized filenames, served from separate path/domain",
+    "audit": "All auth events, overrides, deletions, settings changes, and correction reviews logged with actor, IP, before/after",
+    "dependencies": "npm audit + Dependabot in CI",
+    "secrets": ".env per environment, never committed; example file .env.example tracked"
+  },
+
+  "Reports": {
+    "session_sheet": "Roster with status, scan time, and totals for one session — printable PDF",
+    "student_history": "Chronological records + per-subject summary and overall rate for a term",
+    "offering_summary": "Per-student rates in a class, session count, Present/Late/Absent/Excused totals",
+    "at_risk": "Students crossing absence thresholds, with counts and last-seen date",
+    "department_overview": "Rates by course/year/section, trends by week",
+    "exports": { "formats": ["PDF (pdfmake/puppeteer)", "XLSX (exceljs)", "CSV (native)"], "async": "Large exports generated server-side and delivered via notification link" }
+  },
+
+  "Dashboard": {
+    "student": ["Next class card", "Overall attendance rate ring", "Per-subject rate bars", "Recent activity list", "Warnings banner"],
+    "faculty": ["Today's classes + Start Session buttons", "Active session live counter", "Class rate trend chart", "At-risk students table", "Pending corrections badge"],
+    "admin": ["KPI tiles (today's rate, active sessions, total students/faculty)", "Trend chart (term)", "Section comparison chart", "Low-attendance classes table", "Recent audit feed"],
+    "implementation": "Single GET /dashboard endpoint returning role-shaped payload; widgets lazy-rendered; charts via Recharts"
+  },
+
+  "Notifications": {
+    "in_app": "Socket.IO push to user:{id} room; bell dropdown with unread count; persisted in notifications table",
+    "email": "Nodemailer + SMTP (provider-agnostic); templated with MJML-compiled HTML; used for account, reset, and at-risk alerts",
+    "preferences": "Per-user toggles per event type (in-app always on for critical events)",
+    "events": [
+      "attendance.recorded", "attendance.marked_absent", "attendance.at_risk",
+      "correction.submitted", "correction.reviewed",
+      "account.created", "account.password_reset", "system.announcement"
+    ]
+  },
+
+  "Settings": {
+    "academic": ["Current academic year/semester", "Term start/end dates"],
+    "attendance": ["Default grace minutes (15)", "Default late cutoff minutes (30)", "QR rotation seconds (60)", "Allow static QR for events (false by default)", "Auto-close sessions (true)"],
+    "integrations": ["OSAS API base URL + credentials (env-backed)", "Nightly sync schedule (students, schedules, calendar)", "Sync failure alert recipients"],
+    "notifications": ["Email sender identity", "At-risk thresholds (3 consecutive / 20%)"],
+    "system": ["Module enable/disable flags", "Maintenance mode banner", "Timezone (Asia/Manila)", "Date/time display formats"],
+    "storage": "Key-value (jsonb) settings table with typed accessors and cache"
+  },
+
+  "Deployment": {
+    "containers": "Docker Compose: nginx (reverse proxy + static SPA) | api (Node 20 alpine) | postgres 16 | optional redis (socket.io adapter when scaling)",
+    "ci_cd": "GitHub Actions: lint → typecheck → test → build → deploy on main; migrations run via prisma migrate deploy",
+    "environments": { "development": "docker compose up + seed script", "staging": "UAT mirror", "production": "HTTPS (Let's Encrypt), daily DB backups, health checks" },
+    "monitoring": "pino logs → file/aggregator; /healthz endpoint; uptime monitor",
+    "config": "12-factor via environment variables; .env.example documents all keys"
+  },
+
+  "Future Plans": {
+    "phase_2": ["Announcements", "Student Profile (extended)", "Digital ID (QR-based, feeds kiosk mode)"],
+    "phase_3": ["Grades", "Clearance", "Laboratory Borrowing"],
+    "phase_4": ["Events", "Organizations", "Advising", "Evaluation"],
+    "technical": [
+      "PWA offline scan queue (sync on reconnect)",
+      "Native mobile wrapper (Capacitor) if needed",
+      "SSO via Google Workspace",
+      "Multi-department / multi-campus tenancy",
+      "Read replicas and Redis cache if load grows"
+    ],
+    "design_principle": "Every module ships behind a feature flag in settings; new modules follow the same feature-folder pattern on both frontend and backend"
+  }
+}

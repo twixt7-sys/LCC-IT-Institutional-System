@@ -1,0 +1,121 @@
+1. Identity
+    Who can log in?
+    - Students
+    Who creates accounts?
+    - It's processed by connecting with the OSAS API where students already have accounts.
+    How are accounts verified?
+    - Accounts are verified through the OSAS API, which checks the student's credentials against the university's database.
+    Is there single sign-on?
+    - Yes, students can use their university credentials to log in.
+    Can alumni still log in?
+    - No, alumni cannot log in as the system is designed for current students only.
+    Can inactive students log in?
+    - No, inactive students cannot log in. The system checks the student's status through the OSAS API before granting access.
+
+2. Attendance
+    Static QR or Dynamic QR?
+    - The system uses dynamic QR codes that change every minute to prevent misuse and ensure accurate attendance tracking.
+    One QR per class or event?
+    - One QR code is generated for each class or event, and it is valid for a limited time to ensure that only students present can scan it.
+    One QR every minute?
+    - Yes, a new QR code is generated every minute to enhance security and prevent students from sharing QR codes.
+    GPS verification?
+    - No, the system does not use GPS verification.
+    Classroom verification?
+    - No, the system does not verify the classroom location. It relies on the dynamic QR code for attendance tracking.
+    Manual attendance?
+    - Yes, faculty can manually mark attendance for students who are unable to scan the QR code due to technical issues or other valid reasons.
+    Excused absence?
+    - Yes, the system allows for excused absences, which can be marked by faculty or administrators based on valid reasons provided by the student.
+    Late policy?
+    - Students who arrive after the scheduled start time are marked as late, and this information is recorded in the system.
+    Cutoff time?
+    - There is a cutoff time for each class, after which no further attendance records can be submitted.
+    Multiple scans?
+    - Yes, the system allows multiple scans of the same QR code within a short time frame to accommodate students who may have difficulty scanning it on the first attempt.
+    Duplicate prevention?
+    - The system has mechanisms in place to prevent duplicate attendance records, ensuring that each student can only be marked as present once per class.
+
+3. Student
+    -- from OSAS API --
+    Student ID
+    Program
+    Year
+    Section
+    Status
+    Profile picture
+    -- not from OSAS API --
+    - Adviser
+    - Attendance history
+
+4. Faculty
+    Assigned classes/events
+    Role
+    Assigned sections
+    Assigned rooms
+    Attendance permissions
+
+5. Subject
+    Subject Code
+    Units
+    Instructor
+    Semester
+    Schedule
+    Room
+
+6. Schedule (can take from OSAS API)
+    Weekly schedule
+    Holidays
+    Makeup classes
+    Suspensions
+    Special events
+
+7. QR
+    What information is inside?
+    - Student ID, Class ID, Timestamp
+    Is it encrypted?
+    - Yes, the QR code data is encrypted to ensure that sensitive information is protected and cannot be easily accessed or tampered with.
+    Signed?
+    - No, the QR code is not digitally signed, but it is generated dynamically and encrypted to prevent unauthorized access.
+    Time-limited?
+    - Yes, the QR code is time-limited and expires after a short duration to ensure that it cannot be reused or shared for fraudulent attendance marking.
+    Can screenshots work?
+    - No, screenshots of the QR code will not work because the QR code is dynamic and changes every minute. Additionally, the system checks the timestamp and validity of the QR code to ensure that only valid codes can be scanned for attendance.
+    Does it regenerate?
+    - Yes, the QR code regenerates every minute to enhance security and prevent misuse. Each new QR code is unique and valid for a limited time, ensuring that only students present in the class can scan it for attendance.
+    How long is it valid?
+    - The QR code is valid for a short duration, typically one minute, after which it expires and a new QR code is generated. This time limit ensures that students must be present in the class to scan the QR code for attendance.
+    Is there an option to make it static?
+    - Yes, there is an option to make the QR code static for specific events or classes where dynamic QR codes may not be necessary. However, this option should be used with caution as it may compromise the security and integrity of the attendance tracking system.
+
+8. Monitoring
+    Live attendance
+    Students inside room
+    Late students
+    Attendance percentage
+    Today's classes/events
+    Weekly statistics
+    Monthly statistics
+
+9. Reports
+    Daily
+    Weekly
+    Monthly
+    Semester
+    Per Student
+    Per Subject
+    Per Instructor
+    CSV
+    Excel
+    PDF
+
+10. Security
+    SQL Injection
+    JWT
+    Password hashing
+    HTTPS
+    Audit Logs
+    Role Permissions
+    API Protection
+    Rate Limiting
+    Device Tracking

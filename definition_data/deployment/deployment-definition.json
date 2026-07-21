@@ -1,0 +1,66 @@
+{
+  "$schema_note": "Deployment definition — environments, topology, CI/CD, configuration, backups, monitoring",
+  "strategy": "Containerized modular monolith. Primary target: single VPS with Docker Compose behind nginx (cheap, campus-friendly). Alternate: PaaS (Railway/Render + Vercel for the SPA) with identical images.",
+  "topology": {
+    "services": {
+      "nginx": "Reverse proxy + TLS termination + serves the built SPA (static) + proxies /api and /live (WebSocket upgrade) to api",
+      "api": "Node 20-alpine image running the Express app (PM2-free; Docker restart: unless-stopped + healthcheck)",
+      "postgres": "postgres:16-alpine with named volume; not exposed publicly",
+      "redis (optional)": "Only added when scaling API horizontally (Socket.IO adapter + shared rate-limit store)"
+    },
+    "networking": "Internal Docker network; only nginx exposes 80/443; DB/API unreachable from outside",
+    "domain_ssl": "portal.<institution-domain> with Let's Encrypt via certbot (auto-renew); HTTP→HTTPS redirect; HSTS"
+  },
+  "environments": {
+    "development": {
+      "setup": "docker compose up postgres + pnpm dev (Vite HMR on :5173, API on :3000 with tsx watch)",
+      "data": "prisma migrate dev + seed (demo term, sections, subjects, users per role, fake OSAS fixture server)",
+      "osas": "Mock OSAS server (apps/api/test/mocks) so devs never hit the real university API"
+    },
+    "staging": {
+      "purpose": "UAT mirror of production; real OSAS sandbox credentials if available, otherwise mock",
+      "data": "Anonymized copy or full seed; wiped per release cycle",
+      "gate": "Department Admin sign-off on staging before production deploy"
+    },
+    "production": {
+      "hardening": ["NODE_ENV=production", "Debug/seed routes disabled", "CORS locked to portal origin", "DB user with least-privilege grants", "Append-only permissions for audit tables"],
+      "availability": "Docker healthchecks + restart policies; /healthz probed by uptime monitor every 60s",
+      "capacity_baseline": "2 vCPU / 4GB RAM VPS comfortably serves ~2,000 students with concurrent class-hour scanning"
+    }
+  },
+  "ci_cd": {
+    "platform": "GitHub Actions",
+    "pull_request_pipeline": ["pnpm install (cached)", "eslint + prettier check", "tsc typecheck (web, api, shared)", "vitest unit + integration (Postgres service container)", "npm audit --audit-level=high", "vite build + api build (artifact sanity)"],
+    "main_pipeline": ["All PR checks", "Playwright E2E against ephemeral stack", "Build & tag Docker images (api, nginx+spa)", "Push to registry", "Deploy: ssh → docker compose pull → prisma migrate deploy → compose up -d → smoke test /healthz", "Rollback: redeploy previous image tag (migrations are forward-compatible; destructive changes staged across two releases)"],
+    "versioning": "SemVer tags; CHANGELOG.md per release; images tagged with git SHA + version"
+  },
+  "configuration": {
+    "principle": "12-factor — all config via environment variables; .env.example is the authoritative key list",
+    "keys": [
+      "DATABASE_URL", "JWT_ACCESS_SECRET", "JWT_ACCESS_TTL=15m", "REFRESH_TTL_DAYS=7",
+      "QR_ENC_KEY (32 bytes base64)", "QR_ROTATION_SECONDS=60",
+      "OSAS_API_BASE_URL", "OSAS_API_KEY", "OSAS_TIMEOUT_MS=5000",
+      "SMTP_HOST/PORT/USER/PASS", "MAIL_FROM",
+      "STORAGE_ENDPOINT/BUCKET/KEY/SECRET (S3-compatible)",
+      "CORS_ORIGIN", "APP_TIMEZONE=Asia/Manila", "LOG_LEVEL=info"
+    ],
+    "secret_handling": "Secrets in host secret store / CI encrypted secrets; never in images or repo; rotation procedure documented in maintenance runbook"
+  },
+  "backups_dr": {
+    "database": "pg_dump nightly (02:30) to encrypted archive; 30-day local retention; weekly copy to offsite/object storage",
+    "uploads": "Object storage versioning enabled; weekly sync verification",
+    "restore": "Documented one-command restore script; drill once per semester; RPO 24h, RTO 4h",
+    "disaster_recovery": "Compose file + images + latest dump = full rebuild on any fresh VPS within RTO"
+  },
+  "monitoring_observability": {
+    "logs": "pino JSON → docker log driver → optional Loki/Grafana stack; request IDs correlate SPA errors to API logs",
+    "health": "/healthz (liveness: db ping, osas reachability flag, uptime); uptime monitor alerts via email",
+    "metrics_minimum": ["scan latency p95", "5xx rate", "open sessions count", "OSAS sync outcomes", "DB connection pool saturation"],
+    "alerts": ["healthz failures (2 consecutive)", "OSAS sync FAILED", "error rate spike", "disk >80%", "cert expiry <14 days"]
+  },
+  "scaling_path": [
+    "Step 1 (default): single VPS as above",
+    "Step 2: move Postgres to managed DB; add Redis; run 2+ api replicas behind nginx with Socket.IO Redis adapter",
+    "Step 3: CDN for SPA static assets; read replica for reports if needed"
+  ]
+}

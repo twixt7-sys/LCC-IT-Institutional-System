@@ -1,0 +1,39 @@
+{
+  "Portal": {
+    "Name": "Legacy IT Student Portal",
+    "PrimaryModule": "Attendance",
+    "Expandable": true
+  },
+  "Roles": [
+    "Super Admin",
+    "Department Admin",
+    "Faculty",
+    "Student",
+    "Guest"
+  ],
+  "Core Modules": [
+    "Authentication",
+    "Student Management",
+    "Faculty Management",
+    "Subject Management",
+    "Section Management",
+    "QR Attendance",
+    "Attendance Monitoring",
+    "Reports",
+    "Dashboard",
+    "Notifications",
+    "Settings"
+  ],
+  "Future Modules": [
+    "Announcements",
+    "Grades",
+    "Laboratory Borrowing",
+    "Clearance",
+    "Events",
+    "Organizations",
+    "Advising",
+    "Evaluation",
+    "Student Profile",
+    "Digital ID"
+  ]
+}

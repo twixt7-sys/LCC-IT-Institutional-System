@@ -1,0 +1,84 @@
+{
+  "$schema_note": "Overview definition — identity, goals, context, and high-level architecture of the Legacy IT Student Portal",
+  "system": {
+    "name": "Legacy IT Student Portal",
+    "repository": "LCC-IT-Institutional-System",
+    "owner": "LCC Information Technology Department",
+    "type": "Web application — React SPA frontend + Node.js REST API backend",
+    "primary_module": "QR Attendance",
+    "expandable": true,
+    "version": "1.0.0 (definition)",
+    "defined_on": "2026-07-21"
+  },
+  "problem_statement": "Manual attendance is slow, error-prone, and easy to falsify. Faculty lack real-time visibility, students lack self-service access to their records, and admins lack accurate consolidated reports.",
+  "solution_summary": "A lightweight portal where faculty display a dynamic QR code (regenerating every minute, encrypted and time-limited) that enrolled students scan to record attendance. Identity and student data come from the existing university OSAS API (single sign-on, active students only), so there is no duplicate account management. The system provides live monitoring, correction workflows, role dashboards, and exportable reports, and is architected so future portal modules plug in cleanly.",
+  "goals": [
+    "Sub-5-second attendance capture per student with zero duplicate records",
+    "Real-time class monitoring for faculty",
+    "Self-service attendance history for students",
+    "Accurate exportable reports (daily/weekly/monthly/semester, per student/subject/instructor)",
+    "Single source of student identity via OSAS API integration",
+    "Modular foundation for the 10 planned future modules"
+  ],
+  "non_goals_phase_1": [
+    "GPS or classroom location verification (explicitly excluded)",
+    "Offline attendance capture (planned as PWA queue later)",
+    "Grades, clearance, and other future modules (separate phases)",
+    "Native mobile apps (responsive PWA-ready web instead)"
+  ],
+  "stakeholders": {
+    "Super Admin": "IT system owner — full control, settings, audit",
+    "Department Admin": "Data management, correction approvals, reports",
+    "Faculty": "Runs sessions, monitors and corrects attendance",
+    "Student": "Scans QR, views records, files corrections",
+    "Guest": "Public landing page only",
+    "OSAS Office": "External system of record for student identity and schedules (via API)"
+  },
+  "external_dependencies": {
+    "osas_api": {
+      "purpose": ["Student SSO / credential verification", "Student eligibility (active status) checks", "Profile sync: student_id, program, year, section, status, profile picture", "Weekly schedule import", "Calendar exceptions: holidays, suspensions, makeup classes, special events"],
+      "direction": "Server-to-server only; portal backend calls OSAS — credentials never reach the browser",
+      "failure_mode": "If OSAS is unreachable, existing sessions continue with cached profiles; new student logins are blocked with a clear message; sync retries with backoff and alerts admins"
+    },
+    "smtp_provider": "Transactional email (account, reset, at-risk alerts)",
+    "object_storage": "S3-compatible storage for attachments/exports in production"
+  },
+  "architecture": {
+    "style": "Modular monolith, feature-foldered on both tiers",
+    "diagram": "React SPA (Vite) ⇄ HTTPS REST /api/v1 + Socket.IO ⇄ Express API ⇄ Prisma ⇄ PostgreSQL 16; Express ⇄ OSAS API (server-to-server); Express ⇄ SMTP / object storage",
+    "monorepo": {
+      "tool": "pnpm workspaces",
+      "packages": ["apps/web (React SPA)", "apps/api (Express API)", "packages/shared (zod schemas + TypeScript types shared by both)"]
+    },
+    "key_decisions": [
+      { "decision": "Modular monolith over microservices", "reason": "One team, one deployable, low ops cost; module boundaries enforced by folder structure and feature flags" },
+      { "decision": "PostgreSQL + Prisma", "reason": "Relational integrity for attendance constraints (unique per student+session); type-safe queries; easy migrations" },
+      { "decision": "Vite + shadcn/ui + Tailwind", "reason": "Fast builds, copy-in components (no heavy UI dependency), modern accessible primitives" },
+      { "decision": "TanStack Query + Zustand", "reason": "Server cache and UI state separated; minimal boilerplate vs Redux" },
+      { "decision": "Socket.IO", "reason": "Live rosters and notifications with automatic fallback to polling" },
+      { "decision": "OSAS API as identity source for students", "reason": "No duplicate account management; eligibility enforced by the university system of record" }
+    ]
+  },
+  "non_functional_requirements": {
+    "performance": ["Scan round-trip < 1s on campus Wi-Fi", "Dashboard load < 2s", "Term report < 10s", "Initial SPA bundle < 200KB gzipped (route code-splitting)"],
+    "availability": "99% during class hours (07:00-21:00 Asia/Manila); realtime degrades gracefully to polling",
+    "scalability": "Sized for ~2,000 students / ~100 concurrent scans; Redis adapter + horizontal API scale when needed",
+    "accessibility": "WCAG 2.1 AA, full keyboard navigation, prefers-reduced-motion respected",
+    "localization": "English UI; all timestamps stored UTC, displayed in Asia/Manila",
+    "auditability": "Every auth event, override, deletion, settings change, and sync is logged with actor/IP/before/after"
+  },
+  "roadmap": {
+    "phase_1": "Attendance-first portal (this definition)",
+    "phase_2": ["Announcements", "Extended Student Profile", "Digital ID (kiosk scan mode)"],
+    "phase_3": ["Grades", "Clearance", "Laboratory Borrowing"],
+    "phase_4": ["Events", "Organizations", "Advising", "Evaluation"]
+  },
+  "related_documents": [
+    "../../SystemDefinition.json",
+    "../../SystemDefinition2.json",
+    "../../SystemDefinition3.json",
+    "../../SystemDefinition4.txt",
+    "./roles-and-permissions.json",
+    "./module-registry.json"
+  ]
+}
