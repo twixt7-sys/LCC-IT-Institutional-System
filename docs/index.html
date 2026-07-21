@@ -783,7 +783,7 @@ function shell(inner, opts = {}){
   });
   const items = groups.map(g => {
     let active = false;
-    const inner = g.items.map(it => {
+    const itemsHTML = g.items.map(it => {
       const [href, ic, label, countFn] = it;
       const isActive = path === href || (href !== '/app/dashboard' && path.startsWith(href + '/'));
       if(isActive) active = true;
@@ -796,7 +796,7 @@ function shell(inner, opts = {}){
     return `<div class="nav-group-wrap ${collapsed?'collapsed':''}" data-group="${esc(g.name)}">
       <button class="nav-group" onclick="toggleNavGroup('${esc(g.name).replace(/'/g,"\\'")}')">
         <span>${esc(g.name)}</span><span class="nav-caret">▾</span></button>
-      <div class="nav-items">${inner}</div>
+      <div class="nav-items">${itemsHTML}</div>
     </div>`;
   }).join('');
   const crumbs = opts.crumbs ? `<div class="breadcrumbs">${opts.crumbs}</div>` : '';
@@ -1532,6 +1532,170 @@ route('/app/monitoring', () => {
   { title:'Live Monitoring', sub:'All open sessions across the department', crumbs:'<a href="#/app/dashboard">Home</a> / Monitoring' });
 });
 
+/* =====================================================================
+   EVENTS (orientations, fairs, seminars) — with attendance monitoring
+   ===================================================================== */
+route('/app/events', () => {
+  const isStudent = S.role === 'STUDENT';
+  const upcoming = DB.events.filter(e => e.status === 'SCHEDULED').length;
+  const live = DB.events.filter(e => e.status === 'OPEN').length;
+  const checkedToday = DB.events.filter(e => e.status !== 'SCHEDULED').reduce((a,e)=>a+e.checkedIn,0);
+  const closed = DB.events.filter(e => e.status === 'CLOSED');
+  const avgTurnout = closed.length ? Math.round(closed.reduce((a,e)=>a+e.checkedIn/e.expected*100,0)/closed.length) : 0;
+
+  const cards = DB.events.map(e => {
+    const pct = Math.round(e.checkedIn / e.expected * 100);
+    const barColor = e.status==='OPEN' ? 'var(--green)' : pct<60 ? 'var(--amber)' : 'var(--navy-700)';
+    const cta = e.status==='OPEN'
+        ? `<button class="btn btn-primary btn-sm" onclick="nav('/app/events/${e.id}')">${isStudent?'✓ Check in':'📡 Monitor'}</button>`
+      : e.status==='SCHEDULED'
+        ? (isStudent ? `<span class="badge b-gray">Not started</span>`
+                     : `<button class="btn btn-outline btn-sm" onclick="nav('/app/events/${e.id}')">Manage</button>`)
+        : `<button class="btn btn-outline btn-sm" onclick="nav('/app/events/${e.id}')">${isStudent?'View':'Report'}</button>`;
+    return `<div class="card evt-card">
+      <div class="evt-top">
+        <div class="evt-ic">${e.ic}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px">
+            ${badge(e.type)} ${e.status==='OPEN'?'<span class="badge b-open"><span class="pulse"></span> Live</span>':badge(e.status)}
+          </div>
+          <h4>${e.name}</h4>
+          <div class="evt-meta"><span>📅 ${e.date}</span><span>🕑 ${e.time}</span><br><span>📍 ${e.venue}</span><span>👥 ${e.audience}</span></div>
+        </div>
+      </div>
+      <div class="evt-foot">
+        <div class="turnout">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+            <span class="muted">Attendance</span>
+            <b style="color:var(--navy-900)">${e.checkedIn} / ${e.expected} · ${pct}%</b>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        </div>
+        ${cta}
+      </div>
+    </div>`;
+  }).join('');
+
+  shell(`
+    <div class="grid cols-4" style="margin-bottom:18px">
+      <div class="card stat"><div class="ic">🗓️</div><div><div class="val">${upcoming}</div><div class="lbl">Upcoming events</div></div></div>
+      <div class="card stat"><div class="ic">📡</div><div><div class="val">${live}</div><div class="lbl">Live check-in now</div></div>${live?'<span class="trend up">● open</span>':''}</div>
+      <div class="card stat"><div class="ic">✅</div><div><div class="val">${checkedToday}</div><div class="lbl">Total checked in</div></div></div>
+      <div class="card stat"><div class="ic">📈</div><div><div class="val">${avgTurnout}%</div><div class="lbl">Avg turnout (past)</div></div></div>
+    </div>
+    <div class="toolbar">
+      <input type="search" placeholder="Search events…">
+      <select class="filter-input"><option>All types</option><option>Orientation</option><option>Fair</option><option>Seminar</option><option>Assembly</option></select>
+      <select class="filter-input"><option>All statuses</option><option>Live</option><option>Scheduled</option><option>Closed</option></select>
+    </div>
+    <div class="grid cols-2">${cards}</div>`,
+  { title:'Events', sub:'Orientations, fairs & seminars — QR check-in with live attendance monitoring',
+    crumbs:'<a href="#/app/dashboard">Home</a> / Events',
+    actions: isStudent ? '' : `<button class="btn btn-outline" onclick="toast('Attendee list exported (illustrative).')">⬇ Export</button>
+             <button class="btn btn-primary" onclick="newEventDialog()">＋ New event</button>` });
+});
+
+function newEventDialog(){
+  modal('Create event', `
+    <div class="field"><label>Event name</label><input placeholder="e.g. BSIT Freshmen Orientation"></div>
+    <div class="grid cols-2">
+      <div class="field"><label>Type</label><select><option>Orientation</option><option>Fair</option><option>Seminar</option><option>Assembly</option></select></div>
+      <div class="field"><label>Date</label><input type="date" value="2026-08-08"></div>
+    </div>
+    <div class="grid cols-2">
+      <div class="field"><label>Venue</label><input placeholder="AVR Auditorium"></div>
+      <div class="field"><label>Check-in mode</label><select><option>Dynamic QR (rotating)</option><option>Static QR (single code)</option></select></div>
+    </div>
+    <div class="field"><label>Audience</label>
+      <select><option>All BSIT sections</option><option>BSIT 1st Year</option><option>BSIT 2nd–3rd Year</option><option>BSIT 3rd–4th Year</option><option>Pick sections…</option></select></div>
+    <p class="small muted">Expected attendee count is derived from the selected audience. Check-in opens when you start the session.</p>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="closeModal(); toast('Event created and scheduled.')">Create event</button>`);
+}
+
+route('/app/events/:id', (id) => {
+  const e = DB.events.find(x => x.id === id) || DB.events[0];
+  const isStudent = S.role === 'STUDENT';
+  const pct = Math.round(e.checkedIn / e.expected * 100);
+  const remaining = Math.max(0, e.expected - e.checkedIn);
+  const live = e.status === 'OPEN';
+
+  // build an illustrative check-in feed from the roster
+  const times = ['1:02 PM','1:03 PM','1:05 PM','1:06 PM','1:09 PM','1:12 PM','1:15 PM','1:18 PM','1:21 PM','1:24 PM','1:29 PM','1:33 PM'];
+  const feedRows = DB.roster.slice(0, 12).map((r,i) => {
+    const isLate = i >= 10;
+    return `<div class="proj-row">
+      <span class="avatar" style="width:28px;height:28px;font-size:11px;background:${isLate?'var(--amber)':'var(--green)'}">${r[0][0]}${r[0].split(' ').pop()[0]}</span>
+      <div style="font-size:13px">${r[0]}<div class="small muted mono">${r[1]}</div></div>
+      <span class="t">${isLate?'⏱ Late · ':''}${times[i]}</span>
+    </div>`;
+  }).join('');
+
+  const monitorPanel = `
+    <div class="card card-pad">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3 style="margin:0">Attendance monitoring</h3>
+        ${live?'<span class="sync-ok"><span class="pulse"></span> Live · auto-refreshing</span>':'<span class="badge b-gray">Session closed</span>'}
+      </div>
+      <div class="ring-wrap">
+        ${ringSVG(pct, live?'#15803d':'#19407c', 120, 11)}
+        <div style="flex:1">
+          <div class="bar-row"><span class="lbl">Checked in</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(e.checkedIn/e.expected*100)}%;background:var(--green)"></div></div><span class="v">${e.checkedIn}</span></div>
+          <div class="bar-row"><span class="lbl">Late</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(e.late/e.expected*100)}%;background:var(--amber)"></div></div><span class="v">${e.late}</span></div>
+          <div class="bar-row"><span class="lbl">Remaining</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(remaining/e.expected*100)}%;background:var(--navy-100)"></div></div><span class="v">${remaining}</span></div>
+          <div class="small muted" style="margin-top:8px">${e.checkedIn} of ${e.expected} expected · <b>${pct}%</b> turnout</div>
+        </div>
+      </div>
+    </div>`;
+
+  const feedPanel = `
+    <div class="card">
+      <div class="card-pad" style="padding-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+        <h3 style="margin:0">Check-in feed</h3>
+        <button class="btn btn-outline btn-sm" onclick="toast('Attendee list exported as XLSX (illustrative).')">⬇ Export</button>
+      </div>
+      <div class="live-feed card-pad" style="padding-top:6px">${e.checkedIn ? feedRows : '<div class="empty"><div class="ic">🕑</div>No check-ins yet. Attendees appear here as they scan.</div>'}</div>
+    </div>`;
+
+  // student view: show the QR / check-in action; staff view: show monitoring + feed
+  const studentAction = live
+    ? `<div class="card card-pad" style="text-align:center">
+         <h3>Scan to check in</h3>
+         ${qrBlock('evt-qr', 190)}
+         <div class="small muted" style="margin-top:10px">Point your camera here, or</div>
+         <button class="btn btn-primary" style="margin-top:10px" onclick="toast('Checked in to ${esc(e.name)} ✓')">📷 Open scanner</button>
+       </div>`
+    : `<div class="card card-pad"><div class="empty"><div class="ic">${e.status==='CLOSED'?'✅':'🗓️'}</div>${e.status==='CLOSED'?'This event has ended. Your attendance was recorded.':'Check-in has not opened yet. Come back at the event start time.'}</div></div>`;
+
+  const body = isStudent
+    ? `<div class="grid" style="grid-template-columns:1fr 1.2fr">${studentAction}${monitorPanel}</div>`
+    : `<div class="grid" style="grid-template-columns:1.1fr .9fr">${monitorPanel}${feedPanel}</div>`;
+
+  shell(`
+    <div class="card card-pad" style="margin-bottom:16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <div class="evt-ic" style="width:56px;height:56px;font-size:26px">${e.ic}</div>
+      <div style="flex:1;min-width:200px">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:5px">
+          ${badge(e.type)} ${live?'<span class="badge b-open"><span class="pulse"></span> Live</span>':badge(e.status)} ${badge(e.checkin)}
+        </div>
+        <div class="kv" style="grid-template-columns:auto auto;gap:2px 26px">
+          <dt>📅 ${e.date}</dt><dt>🕑 ${e.time}</dt>
+          <dt>📍 ${e.venue}</dt><dt>👥 ${e.audience}</dt>
+          <dt>🧑‍💼 ${e.organizer}</dt><dt></dt>
+        </div>
+      </div>
+      ${!isStudent ? (live
+        ? `<button class="btn btn-danger" onclick="confirmDialog('Close event check-in?','No further scans will be accepted after closing. Attendance is finalized and audited.',()=>{ nav('/app/events'); toast('Event check-in closed.'); })">■ Close check-in</button>`
+        : e.status==='SCHEDULED'
+          ? `<button class="btn btn-primary" onclick="toast('Check-in opened — QR is now live at the venue.')">▶ Open check-in</button>`
+          : `<button class="btn btn-outline" onclick="toast('Attendance report exported (illustrative).')">📊 Export report</button>`) : ''}
+    </div>
+    ${body}`,
+  { title: e.name, crumbs:`<a href="#/app/dashboard">Home</a> / <a href="#/app/events">Events</a> / ${e.id}` });
+
+  if(isStudent && live){ const c = $('#evt-qr'); if(c){ drawQR(c, 77001); const t = setInterval(()=>{ const cc=$('#evt-qr'); if(cc) drawQR(cc, Date.now()); }, 4000); S.timers.push(t); } }
+});
+
 route('/app/students', () => {
   const rows = DB.students.map(s => `
     <tr>
@@ -1791,56 +1955,202 @@ route('/app/terms', () => {
     actions:`<button class="btn btn-primary" onclick="toast('New term form (illustrative).')">＋ New term</button>` });
 });
 
-route('/app/settings', () => {
-  const flags = [
-    ['qr-attendance','QR Attendance', true, 'Phase 1'], ['monitoring','Attendance Monitoring', true, 'Phase 1'],
-    ['reports','Reports', true, 'Phase 1'], ['notifications','Notifications', true, 'Phase 1'],
-    ['announcements','Announcements', false, 'Phase 2'], ['digital-id','Digital ID (kiosk mode)', false, 'Phase 2'],
-    ['grades','Grades', false, 'Phase 3'], ['clearance','Clearance', false, 'Phase 3'],
-  ].map(f => `
-    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)">
-      <div style="flex:1"><b class="small">${f[1]}</b> <span class="badge b-gray" style="margin-left:6px">${f[3]}</span>
-        <div class="small muted mono">modules.${f[0]}.enabled</div></div>
-      <span class="switch"><input type="checkbox" ${f[2]?'checked':''} onchange="toast('Feature flag saved — disabled modules 404 their routes and hide their menus.')"><span class="sl"></span></span>
-    </div>`).join('');
-  shell(`
-    <div class="tabs">
-      <button class="tab active">Attendance</button><button class="tab" onclick="toast('Tab is illustrative in this prototype.')">OSAS Integration</button>
-      <button class="tab" onclick="toast('Tab is illustrative.')">Email templates</button><button class="tab" onclick="toast('Tab is illustrative.')">Maintenance</button>
+const SETTINGS_SECTIONS = [
+  ['general',      '🏫', 'General'],
+  ['attendance',   '📋', 'Attendance'],
+  ['events',       '🎪', 'Events'],
+  ['notifications','🔔', 'Notifications'],
+  ['osas',         '🔄', 'OSAS Integration'],
+  ['security',     '🔐', 'Security'],
+  ['modules',      '🧩', 'Modules'],
+  ['maintenance',  '🛠️', 'Maintenance'],
+];
+function settingsSave(area){ toast(area + ' settings saved — change recorded in the audit log.'); }
+function setRow(title, desc, control){
+  return `<div class="set-row"><div class="desc"><b>${title}</b><span class="small">${desc}</span></div>${control}</div>`;
+}
+function toggleCtl(on){ return `<span class="switch"><input type="checkbox" ${on?'checked':''} onchange="toast('Preference updated.')"><span class="sl"></span></span>`; }
+function settingsBody(tab){
+  if(tab === 'general') return `
+    <div class="card card-pad">
+      <h3>Institution</h3>
+      <div class="grid cols-2">
+        <div class="field"><label>Institution name</label><input value="La Consolacion College"></div>
+        <div class="field"><label>Department</label><input value="Information Technology (BSIT)"></div>
+        <div class="field"><label>Time zone</label><select><option>Asia/Manila (GMT+8)</option><option>UTC</option></select></div>
+        <div class="field"><label>Locale / date format</label><select><option>English (PH) · MMM DD, YYYY</option><option>ISO · YYYY-MM-DD</option></select></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="settingsSave('General')">Save changes</button>
     </div>
-    <div class="grid cols-2">
-      <div style="display:grid;gap:16px;align-self:start">
-        <div class="card card-pad">
-          <h3>Attendance rules</h3>
-          <div class="grid cols-2">
-            <div class="field"><label>Grace period (Present)</label><input value="15"> </div>
-            <div class="field"><label>Late cutoff (minutes)</label><input value="30"></div>
-            <div class="field"><label>At-risk threshold (%)</label><input value="75"></div>
-            <div class="field"><label>QR rotation interval (s)</label><input value="60"></div>
-          </div>
-          <label class="small" style="display:flex;align-items:center;gap:10px;margin:6px 0 14px">
-            <span class="switch"><input type="checkbox"><span class="sl"></span></span> Allow static QR for events (faculty must request per session)</label>
-          <button class="btn btn-primary btn-sm" onclick="toast('Attendance settings saved — change recorded in audit log.')">Save settings</button>
-        </div>
-        <div class="card card-pad">
-          <h3>OSAS sync</h3>
-          <div class="kv" style="grid-template-columns:150px 1fr">
-            <dt>Nightly sync time</dt><dd>02:00 Asia/Manila</dd>
-            <dt>Last student sync</dt><dd>Jul 21, 02:00 · <span class="sync-ok">✔ 1,987 processed</span></dd>
-            <dt>Retry policy</dt><dd>Backoff ×3, then alert admins</dd>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:14px">
-            <button class="btn btn-outline btn-sm" onclick="toast('Student sync queued.')">↻ Sync students</button>
-            <button class="btn btn-outline btn-sm" onclick="toast('Schedule sync queued.')">↻ Sync schedules</button>
-            <button class="btn btn-outline btn-sm" onclick="toast('Calendar sync queued.')">↻ Sync calendar</button>
-          </div>
-        </div>
+    <div class="card card-pad">
+      <h3>Active academic term</h3>
+      <div class="kv" style="grid-template-columns:150px 1fr">
+        <dt>Academic year</dt><dd><b>${DB.term.year}</b></dd>
+        <dt>Semester</dt><dd>${DB.term.semester} · ${DB.term.start} – ${DB.term.end}</dd>
+        <dt>Status</dt><dd><span class="badge b-present">● Current</span></dd>
       </div>
-      <div class="card card-pad" style="align-self:start">
-        <h3>Module feature flags</h3>
-        <p class="small muted" style="margin-bottom:8px">New modules ship disabled until accepted in staging. Disabling hides all routes and UI entries.</p>
-        ${flags}
+      <p class="small muted" style="margin:10px 0 12px">The current term drives dashboards, reports, and session generation. Switching terms is a separate, audited action.</p>
+      <a class="btn btn-outline btn-sm" href="#/app/terms">Manage academic terms →</a>
+    </div>`;
+
+  if(tab === 'attendance') return `
+    <div class="card card-pad">
+      <h3>Attendance rules</h3>
+      <p class="small muted" style="margin-bottom:12px">System-wide defaults. Individual class offerings may override grace / cutoff per session.</p>
+      <div class="grid cols-2">
+        <div class="field"><label>Grace period — marked Present (min)</label><input value="15"></div>
+        <div class="field"><label>Late cutoff — marked Absent after (min)</label><input value="30"></div>
+        <div class="field"><label>At-risk threshold (%)</label><input value="75"></div>
+        <div class="field"><label>Duplicate-scan lockout (sec)</label><input value="90"></div>
       </div>
+      <button class="btn btn-primary btn-sm" onclick="settingsSave('Attendance')">Save changes</button>
+    </div>
+    <div class="card card-pad">
+      <h3>QR generation</h3>
+      ${setRow('Dynamic QR rotation interval','Seconds before a projected code regenerates.', '<input class="filter-input" style="max-width:90px;min-width:0" value="60">')}
+      ${setRow('Allow static QR','Permit single-code sessions (faculty must request per session).', toggleCtl(false))}
+      ${setRow('Server-side scan validation','Reject expired, tampered, or replayed codes.', toggleCtl(true))}
+      <button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="settingsSave('QR generation')">Save changes</button>
+    </div>`;
+
+  if(tab === 'events') return `
+    <div class="card card-pad">
+      <h3>Event check-in defaults</h3>
+      <p class="small muted" style="margin-bottom:12px">Applied to new orientations, fairs, seminars & assemblies unless overridden on the event.</p>
+      <div class="grid cols-2">
+        <div class="field"><label>Default check-in mode</label><select><option>Dynamic QR (rotating)</option><option>Static QR (single code)</option></select></div>
+        <div class="field"><label>Event QR rotation (sec)</label><input value="120"></div>
+        <div class="field"><label>Late check-in threshold (min after start)</label><input value="30"></div>
+        <div class="field"><label>Auto-close check-in</label><select><option>At event end time</option><option>Manual only</option><option>30 min after start</option></select></div>
+      </div>
+      ${setRow('Allow walk-in / unregistered attendees','Accept scans from students outside the target audience.', toggleCtl(true))}
+      ${setRow('Count toward class attendance','Include event check-ins in overall attendance rate.', toggleCtl(false))}
+      <button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="settingsSave('Events')">Save changes</button>
+    </div>`;
+
+  if(tab === 'notifications') return `
+    <div class="card card-pad">
+      <h3>Delivery channels</h3>
+      ${setRow('In-app notifications','Bell menu inside the portal.', toggleCtl(true))}
+      ${setRow('Email','Sent to institutional (@lcc.edu.ph) addresses.', toggleCtl(true))}
+      ${setRow('SMS','For urgent suspensions and lockouts only.', toggleCtl(false))}
+    </div>
+    <div class="card card-pad">
+      <h3>Triggers</h3>
+      ${setRow('At-risk attendance warning','Notify students crossing the at-risk threshold.', toggleCtl(true))}
+      ${setRow('Correction request updates','Notify students when a request is approved / rejected.', toggleCtl(true))}
+      ${setRow('Event reminders','Remind the target audience the day before an event.', toggleCtl(true))}
+      ${setRow('Class suspensions & makeups','Broadcast calendar exceptions to affected sections.', toggleCtl(true))}
+      <div class="field" style="margin-top:14px"><label>Quiet hours (no push)</label>
+        <select><option>10:00 PM – 6:00 AM</option><option>None</option><option>9:00 PM – 7:00 AM</option></select></div>
+      <button class="btn btn-primary btn-sm" onclick="settingsSave('Notifications')">Save changes</button>
+    </div>`;
+
+  if(tab === 'osas') return `
+    <div class="card card-pad">
+      <h3>Sync configuration</h3>
+      <div class="grid cols-2">
+        <div class="field"><label>Nightly sync time</label><input value="02:00" ></div>
+        <div class="field"><label>Retry policy</label><select><option>Backoff ×3, then alert admins</option><option>Retry ×5</option><option>No retry</option></select></div>
+      </div>
+      ${setRow('Auto-deactivate inactive students','Block sign-in for students marked inactive in OSAS.', toggleCtl(true))}
+      ${setRow('Treat OSAS as source of truth','OSAS fields (section, status, photo) stay read-only locally.', toggleCtl(true))}
+      <button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="settingsSave('OSAS')">Save changes</button>
+    </div>
+    <div class="card card-pad">
+      <h3>Sync status &amp; manual triggers</h3>
+      <div class="kv" style="grid-template-columns:150px 1fr">
+        <dt>Connection</dt><dd><span class="sync-ok">● Healthy</span></dd>
+        <dt>Last student sync</dt><dd>Jul 21, 02:00 · <span class="sync-ok">✔ 1,987 processed</span></dd>
+        <dt>Last schedule sync</dt><dd>Jul 21, 02:10 · <b>214</b> processed</dd>
+        <dt>Last calendar sync</dt><dd>Jul 21, 02:14 · <b>9</b> exceptions</dd>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="toast('Student sync queued.')">↻ Sync students</button>
+        <button class="btn btn-outline btn-sm" onclick="toast('Schedule sync queued.')">↻ Sync schedules</button>
+        <button class="btn btn-outline btn-sm" onclick="toast('Calendar sync queued.')">↻ Sync calendar</button>
+      </div>
+    </div>`;
+
+  if(tab === 'security') return `
+    <div class="card card-pad">
+      <h3>Authentication</h3>
+      <div class="grid cols-2">
+        <div class="field"><label>Max failed attempts before lockout</label><input value="5"></div>
+        <div class="field"><label>Lockout duration (min)</label><input value="15"></div>
+        <div class="field"><label>Session timeout (min)</label><input value="60"></div>
+        <div class="field"><label>Password min length (staff)</label><input value="10"></div>
+      </div>
+      ${setRow('Require OSAS SSO for students','Students never get local passwords — OSAS credentials only.', toggleCtl(true))}
+      ${setRow('Two-factor for admin accounts','Enforce 2FA for Dept Admin and Super Admin sign-in.', toggleCtl(false))}
+      <button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="settingsSave('Security')">Save changes</button>
+    </div>
+    <div class="card card-pad">
+      <h3>Audit &amp; access</h3>
+      ${setRow('Append-only audit log','Every override, deletion, and settings change is recorded immutably.', toggleCtl(true))}
+      <div class="field" style="margin-top:12px"><label>Audit log retention</label>
+        <select><option>7 years</option><option>3 years</option><option>1 year</option></select></div>
+      <a class="btn btn-outline btn-sm" href="#/app/audit-logs">View audit logs →</a>
+    </div>`;
+
+  if(tab === 'modules'){
+    const flags = [
+      ['qr-attendance','QR Attendance', true, 'Phase 1'], ['monitoring','Attendance Monitoring', true, 'Phase 1'],
+      ['events','Events', true, 'Phase 1'], ['reports','Reports', true, 'Phase 1'],
+      ['notifications','Notifications', true, 'Phase 1'], ['announcements','Announcements', false, 'Phase 2'],
+      ['digital-id','Digital ID (kiosk mode)', false, 'Phase 2'], ['grades','Grades', false, 'Phase 3'],
+      ['clearance','Clearance', false, 'Phase 3'],
+    ].map(f => `
+      <div class="set-row">
+        <div class="desc"><b>${f[1]} <span class="badge b-gray" style="margin-left:4px">${f[3]}</span></b>
+          <span class="small mono">modules.${f[0]}.enabled</span></div>
+        <span class="switch"><input type="checkbox" ${f[2]?'checked':''} onchange="toast('Feature flag saved — disabled modules 404 their routes and hide their menus.')"><span class="sl"></span></span>
+      </div>`).join('');
+    return `
+    <div class="card card-pad">
+      <h3>Module feature flags</h3>
+      <p class="small muted" style="margin-bottom:8px">New modules ship disabled until accepted in staging. Disabling hides all routes and menu entries.</p>
+      ${flags}
+    </div>`;
+  }
+
+  if(tab === 'maintenance') return `
+    <div class="card card-pad">
+      <h3>System</h3>
+      ${setRow('Maintenance mode','Show a maintenance page to non-admins during upgrades.', toggleCtl(false))}
+      <div class="field" style="margin-top:12px"><label>Data retention — closed sessions</label>
+        <select><option>Keep indefinitely</option><option>Archive after 2 years</option></select></div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="toast('Full backup queued — you will be notified when complete.')">💾 Run backup now</button>
+        <button class="btn btn-outline btn-sm" onclick="toast('Application cache cleared.')">🧹 Clear cache</button>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <h3>Environment</h3>
+      <div class="kv" style="grid-template-columns:150px 1fr">
+        <dt>Build</dt><dd class="mono">v1.0.0-prototype</dd>
+        <dt>Last backup</dt><dd>Jul 21, 2026 · 02:30 · <span class="sync-ok">✔ Success</span></dd>
+        <dt>Database</dt><dd class="mono">PostgreSQL · healthy</dd>
+        <dt>Realtime</dt><dd class="mono">Socket.IO · connected</dd>
+      </div>
+    </div>`;
+
+  return '';
+}
+function showSettingsTab(tab){
+  S.settingsTab = tab;
+  const body = $('#settings-body');
+  if(body) body.innerHTML = settingsBody(tab);
+  document.querySelectorAll('.settings-nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+}
+route('/app/settings', () => {
+  const tab = S.settingsTab || 'general';
+  const navBtns = SETTINGS_SECTIONS.map(([key,ic,label]) =>
+    `<button class="${key===tab?'active':''}" data-tab="${key}" onclick="showSettingsTab('${key}')"><span>${ic}</span> ${label}</button>`).join('');
+  shell(`
+    <div class="settings-wrap">
+      <nav class="settings-nav">${navBtns}</nav>
+      <div id="settings-body" class="settings-section">${settingsBody(tab)}</div>
     </div>`,
   { title:'System Settings', sub:'Super Admin only · every change is audited', crumbs:'<a href="#/app/dashboard">Home</a> / Settings' });
 });
