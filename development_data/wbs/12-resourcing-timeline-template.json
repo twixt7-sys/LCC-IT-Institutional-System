@@ -1,0 +1,77 @@
+{
+  "$schema_note": "Resourcing, timeline, budget, and risk register TEMPLATE. Unlike files 00-11 (which are structurally complete from definition_data), almost everything here is a placeholder — it exists purely so you have a fixed shape to fill in once you've answered SystemDefinition5.txt. Nothing in this file was inferable from definition_data or docs/index.html.",
+  "team": {
+    "model": null,
+    "_model_options": ["solo", "small_team", "distributed_team"],
+    "members": [
+      { "name": null, "role": null, "_role_options": ["project_lead", "backend_dev", "frontend_dev", "fullstack_dev", "db_admin", "devops", "qa", "designer"], "hours_per_week": null, "timezone": null, "skills": [] }
+    ],
+    "decision_maker_for_scope_changes": null,
+    "external_stakeholders_requiring_signoff": [],
+    "_fill_from": "SystemDefinition5.txt §1"
+  },
+  "methodology": {
+    "framework": null,
+    "_framework_options": ["scrum", "kanban", "solo_ad_hoc"],
+    "sprint_length_days": null,
+    "project_management_tool": null,
+    "_pm_tool_options": ["GitHub Projects", "Jira", "Trello", "Notion", "Linear", "other"],
+    "communication_tool": null,
+    "_comms_tool_options": ["Slack", "Discord", "Microsoft Teams", "email", "other"],
+    "_fill_from": "SystemDefinition5.txt §1, §3"
+  },
+  "timeline": {
+    "project_start_date": null,
+    "phase_0_target_completion": null,
+    "phase_1_target_go_live": null,
+    "hard_deadline": null,
+    "hard_deadline_reason": null,
+    "pilot_soft_launch": { "planned": null, "scope": null, "dates": null },
+    "milestones": [
+      { "id": "M0", "name": "Foundations complete (Phase 0 done)", "target_date": null, "wbs_ref": "01-phase0-foundations.json", "status": "not_started" },
+      { "id": "M1", "name": "Auth + OSAS + Catalog usable end-to-end (P1.AUTH, P1.OSAS, P1.CATALOG)", "target_date": null, "wbs_ref": "02-phase1-auth-identity.json, 03-phase1-people-catalog.json", "status": "not_started" },
+      { "id": "M2", "name": "QR attendance engine working in staging (P1.QR)", "target_date": null, "wbs_ref": "04-phase1-attendance-core.json", "status": "not_started" },
+      { "id": "M3", "name": "Monitoring, Corrections, Reports, Dashboard complete", "target_date": null, "wbs_ref": "04-phase1-attendance-core.json, 05-phase1-reports-dashboard.json", "status": "not_started" },
+      { "id": "M4", "name": "Notifications, Settings, Audit complete; feature-complete for Phase 1", "target_date": null, "wbs_ref": "06-phase1-notifications-settings-audit.json", "status": "not_started" },
+      { "id": "M5", "name": "Crosscutting QA/security gates green (coverage targets, OWASP checklist)", "target_date": null, "wbs_ref": "07-phase1-crosscutting-qa-security.json", "status": "not_started" },
+      { "id": "M6", "name": "Staging UAT signed off by Department Admin", "target_date": null, "wbs_ref": "08-phase1-deployment-launch.json#P1.DEVOPS.STAGING", "status": "not_started" },
+      { "id": "M7", "name": "Production go-live", "target_date": null, "wbs_ref": "08-phase1-deployment-launch.json#P1.DEVOPS.PROD06", "status": "not_started" }
+    ],
+    "_fill_from": "SystemDefinition5.txt §2"
+  },
+  "budget": {
+    "currency": null,
+    "hosting_monthly_budget": null,
+    "domain_annual_cost": null,
+    "smtp_provider_cost": null,
+    "object_storage_cost": null,
+    "one_time_costs": [],
+    "constraints": null,
+    "_fill_from": "SystemDefinition5.txt §13"
+  },
+  "environments": {
+    "development": { "host": "local machine(s) + docker compose", "osas": "mock fixture server (P0.DB.INT01)" },
+    "staging": { "host": null, "domain": null, "osas": null },
+    "production": { "host": null, "domain": null, "provider": null, "region": null },
+    "_fill_from": "SystemDefinition5.txt §8"
+  },
+  "estimation_conventions": {
+    "unit": "hours",
+    "confidence_scale": ["rough_order_of_magnitude", "budgetary", "definitive"],
+    "note": "Every task object across 01-11 has estimate.value=null — populate per-task once the team and methodology above are fixed. Do not attempt to fill these before team/methodology decisions land; an estimate without a known assignee/skill-level is guesswork twice over."
+  },
+  "risk_register_template": [
+    { "id": "R1", "risk": "Real OSAS API contract/credentials arrive late or differ from the assumed shape", "likelihood": null, "impact": null, "affected_wbs": ["02-phase1-auth-identity.json#P1.OSAS"], "mitigation": "Build entirely against the mock OSAS fixture server (P0.DB.INT01) so development is never blocked; integrate the real API as a late-binding swap.", "owner": null, "status": "open" },
+    { "id": "R2", "risk": "QR/attendance engine (P1.QR) is under-tested and ships with a fraud or false-absence bug", "likelihood": null, "impact": null, "affected_wbs": ["04-phase1-attendance-core.json#P1.QR"], "mitigation": "Enforce the 90%+ coverage gate and k6 concurrency test before this work package can be marked done (P1.QR.QA01, P1.QR.QA02).", "owner": null, "status": "open" },
+    { "id": "R3", "risk": "Hosting/domain/budget decisions stall Phase 0 infra tasks", "likelihood": null, "impact": null, "affected_wbs": ["01-phase0-foundations.json#P0.INFRA"], "mitigation": "Answer SystemDefinition5.txt §8 and §13 before Phase 0 starts, not during it.", "owner": null, "status": "open" },
+    { "id": "R4", "risk": "Solo-developer or very small team cannot sustain the full crosscutting QA/security discipline (07) alongside feature work", "likelihood": null, "impact": null, "affected_wbs": ["07-phase1-crosscutting-qa-security.json"], "mitigation": "Scope down non-negotiables (attendance/auth coverage, OWASP checklist) vs. nice-to-haves (full E2E matrix) explicitly, rather than silently skipping.", "owner": null, "status": "open" },
+    { "id": "R5", "risk": "Campus Wi-Fi reliability during class hours undermines the sub-1s scan round-trip NFR", "likelihood": null, "impact": null, "affected_wbs": ["04-phase1-attendance-core.json#P1.QR"], "mitigation": "Manual attendance fallback (P1.QR.BE06) is the documented universal fallback — confirm faculty are trained on it before go-live.", "owner": null, "status": "open" }
+  ],
+  "how_to_fill": [
+    "1. Answer SystemDefinition5.txt in full.",
+    "2. Fill team, methodology, timeline, budget, environments sections above from those answers.",
+    "3. Walk files 01-08 in order, filling estimate/priority/assignee/status/dates on each task using the now-known team capacity and target dates.",
+    "4. Import the filled tasks into whatever project-management tool §3/§1 of SystemDefinition5.txt names — this WBS remains the versioned source of truth in git; the PM tool is the daily-use view.",
+    "5. Revisit the risk_register_template regularly (weekly per maintenance-definition.json cadence, at minimum) — add risks as they're discovered, don't just fill it once."
+  ]
+}

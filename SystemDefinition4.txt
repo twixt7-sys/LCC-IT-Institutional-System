@@ -45,8 +45,8 @@
     Status
     Profile picture
     -- not from OSAS API --
-    - Adviser
-    - Attendance history
+    Adviser
+    Attendance history
 
 4. Faculty
     Assigned classes/events

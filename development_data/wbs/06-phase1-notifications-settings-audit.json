@@ -1,0 +1,93 @@
+{
+  "$schema_note": "Phase 1 — Notifications, Settings/Feature-Flags, User & Term Administration, and Audit & Logs. Cross-cutting support modules that most other work packages call into (audit() is used everywhere; notifications are used by corrections/at-risk/OSAS/broadcast).",
+  "phase": { "id": "P1", "name": "Attendance-First Portal (Core Modules)", "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_1" },
+  "work_packages": [
+    {
+      "id": "P1.NOTIF",
+      "name": "Notifications",
+      "module": "notifications",
+      "goal": "In-app realtime (Socket.IO) + transactional email; per-user preferences and read state.",
+      "definition_refs": ["definition_data/overview/module-registry.json#core_modules[notifications]"],
+      "tasks": [
+        { "id": "P1.NOTIF.DB01", "title": "notifications + notification_preferences Prisma models", "category": "database", "module": "notifications",
+          "definition_refs": ["definition_data/database/database-schema.json#tables.notifications", "definition_data/database/database-schema.json#tables.notification_preferences"],
+          "description": "data jsonb deep-link payload; notifications(user_id, read_at) indexed; notification_preferences pk (user_id, event_type).",
+          "deliverables": ["migration adding both tables"], "acceptance_criteria": [], "depends_on": ["P1.AUTH.DB01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.NOTIF.BE01", "title": "Notification create/list/read + emit helper", "category": "backend", "module": "notifications",
+          "description": "Internal notify(userId, type, title, body, data) helper used by other services (corrections, at-risk, OSAS sync failures); GET /notifications, PATCH :id/read, PATCH read-all.",
+          "definition_refs": ["definition_data/backend/api-specification.json#endpoints.notifications[0..2]"],
+          "deliverables": ["modules/notifications/*", "lib notify() helper"], "acceptance_criteria": [], "depends_on": ["P1.NOTIF.DB01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.NOTIF.BE02", "title": "Mailer infra (nodemailer + MJML templates)", "category": "backend", "module": "notifications",
+          "description": "SMTP transport (provider-agnostic), MJML-compiled templates for account/reset/at-risk alert emails.", "definition_refs": ["definition_data/backend/backend-architecture.json#key_libraries.email"],
+          "deliverables": ["infra/mailer.ts", "email templates"], "acceptance_criteria": [], "depends_on": ["P0.REPO.DEVOPS05"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "SMTP provider choice needed — see SystemDefinition5.txt §9." },
+        { "id": "P1.NOTIF.BE03", "title": "Preferences endpoints + broadcast endpoint", "category": "backend", "module": "notifications",
+          "description": "GET|PATCH /notifications/preferences; POST /notifications/broadcast { audience, title, body } for DA/SA.", "definition_refs": ["definition_data/backend/api-specification.json#endpoints.notifications[3..4]"],
+          "deliverables": ["preferences + broadcast handlers"], "acceptance_criteria": [], "depends_on": ["P1.NOTIF.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.NOTIF.BE04", "title": "token-cleanup cron job", "category": "backend", "module": "notifications",
+          "description": "Daily 04:00 — purge expired refresh tokens and stale notifications (>90 days read).", "definition_refs": ["definition_data/backend/backend-architecture.json#background_jobs[4]"],
+          "deliverables": ["infra/jobs.ts token-cleanup"], "acceptance_criteria": [], "depends_on": ["P1.NOTIF.DB01", "P1.AUTH.DB01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.FE30", "title": "Notifications feed page + topbar bell w/ unread badge", "category": "frontend", "module": "notifications",
+          "definition_refs": ["definition_data/frontend/pages-and-routes.json#student_pages (Notifications)", "definition_data/frontend/frontend-architecture.json#layout.app_shell"],
+          "description": "Feed with read state, preference toggles; topbar notification bell with unread count, invalidated on notification:new socket event.", "deliverables": ["Notifications.tsx", "Topbar bell component"], "acceptance_criteria": [], "depends_on": ["P1.NOTIF.BE03"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ]
+    },
+    {
+      "id": "P1.SETTINGS",
+      "name": "Settings & Feature Flags",
+      "module": "settings",
+      "goal": "Terms, thresholds, QR rotation interval, static-QR allowance, OSAS sync config, module flags, maintenance banner.",
+      "definition_refs": ["definition_data/overview/module-registry.json#core_modules[settings]"],
+      "tasks": [
+        { "id": "P1.SETTINGS.DB01", "title": "settings key/value Prisma model", "category": "database", "module": "settings",
+          "definition_refs": ["definition_data/database/database-schema.json#tables.settings"], "description": "key text PK, value jsonb, updated_by, updated_at.",
+          "deliverables": ["migration adding settings"], "acceptance_criteria": [], "depends_on": ["P0.DB.DB01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.SETTINGS.BE01", "title": "GET|PATCH /settings + module feature-flag enforcement", "category": "backend", "module": "settings",
+          "description": "R: DA/SA, W: SA; disabled modules.<key>.enabled hides routes (404) at the router-registration layer, not just the UI.", "definition_refs": ["definition_data/backend/api-specification.json#endpoints.admin[3]", "definition_data/overview/module-registry.json#conventions.feature_flag"],
+          "deliverables": ["modules/settings/*", "route-registration feature-flag gate"], "acceptance_criteria": ["Disabling a module's flag returns 404 on its routes, not 403"], "depends_on": ["P1.SETTINGS.DB01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.FE31", "title": "System Settings page (tabbed)", "category": "frontend", "module": "settings",
+          "description": "Tabs: general/attendance thresholds, QR rotation interval + static-QR allowance, OSAS config + manual sync triggers, email templates, module feature flags, maintenance banner, timezone/date formats.",
+          "definition_refs": ["definition_data/frontend/pages-and-routes.json#super_admin_pages (System Settings)"],
+          "deliverables": ["Settings.tsx (settings-nav + settings-section pattern from docs/index.html)"], "acceptance_criteria": [], "depends_on": ["P1.SETTINGS.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "docs/index.html already implements the .settings-wrap / .settings-nav tabbed layout to reuse." }
+      ]
+    },
+    {
+      "id": "P1.ADMIN",
+      "name": "User & Term Administration",
+      "module": "auth",
+      "goal": "Super Admin/Dept Admin user account management beyond the auth module itself.",
+      "definition_refs": ["definition_data/backend/api-specification.json#endpoints.admin"],
+      "tasks": [
+        { "id": "P1.ADMIN.BE01", "title": "Users CRUD (SA full, DA non-admin only)", "category": "backend", "module": "auth",
+          "description": "GET|POST /users, PATCH|DELETE /users/:id.", "definition_refs": ["definition_data/backend/api-specification.json#endpoints.admin[0..1]"],
+          "deliverables": ["modules/users/*"], "acceptance_criteria": ["DA cannot create/edit SUPER_ADMIN or DEPT_ADMIN accounts"], "depends_on": ["P1.AUTH.SEC01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.FE32", "title": "User Management page (Super Admin)", "category": "frontend", "module": "auth",
+          "definition_refs": ["definition_data/frontend/pages-and-routes.json#super_admin_pages (User Management)"],
+          "description": "All accounts, roles, activation, forced resets, device sessions.", "deliverables": ["UserManagement.tsx"], "acceptance_criteria": [], "depends_on": ["P1.ADMIN.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ]
+    },
+    {
+      "id": "P1.AUDIT",
+      "name": "Audit & Logs",
+      "module": "audit",
+      "goal": "Audit logs (before/after, actor, IP), activity logs, login logs, attendance logs, OSAS sync logs — append-only.",
+      "definition_refs": ["definition_data/overview/module-registry.json#core_modules[audit]"],
+      "tasks": [
+        { "id": "P1.AUDIT.DB01", "title": "audit_logs Prisma model (append-only)", "category": "database", "module": "audit",
+          "definition_refs": ["definition_data/database/database-schema.json#tables.audit_logs"], "description": "actor_user_id nullable (null=system), action (entity.verb), before/after jsonb, ip_address; no UPDATE/DELETE grants at the DB role level.",
+          "deliverables": ["migration adding audit_logs", "DB role grants restricting UPDATE/DELETE"], "acceptance_criteria": ["audit_logs(created_at) and (entity, entity_id) indexed"], "depends_on": ["P1.AUTH.DB01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.AUDIT.BE01", "title": "audit() helper + wire into every mutating service", "category": "backend", "module": "audit",
+          "description": "lib/audit.ts called in services for every mutating action with actor, entity, before/after — logins, overrides, deletions, settings changes, syncs.", "definition_refs": ["definition_data/backend/backend-architecture.json#architecture.directory_structure (lib/audit.ts)", "definition_data/security/security-definition.json#audit_and_logging"],
+          "deliverables": ["lib/audit.ts + call sites across auth/qr/settings/users/osas services"], "acceptance_criteria": ["Every mutating endpoint in api-specification.json has a corresponding audit_logs row in integration tests"], "depends_on": ["P1.AUDIT.DB01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": "Easy to forget on new endpoints — enforce via a lint rule or PR checklist item, not memory alone.", "notes": "" },
+        { "id": "P1.AUDIT.BE02", "title": "GET /audit-logs explorer endpoint", "category": "backend", "module": "audit",
+          "description": "Filterable by actor/entity/action/date; SA sees all, DA sees dept scope.", "definition_refs": ["definition_data/backend/api-specification.json#endpoints.admin[4]"],
+          "deliverables": ["modules/audit/audit.controller.ts"], "acceptance_criteria": [], "depends_on": ["P1.AUDIT.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.FE33", "title": "Audit Logs explorer page (before/after diff view)", "category": "frontend", "module": "audit",
+          "definition_refs": ["definition_data/frontend/pages-and-routes.json#super_admin_pages (Audit Logs)"],
+          "description": "Filterable log explorer with before/after diff view.", "deliverables": ["AuditLogs.tsx (.audit-diff pattern from docs/index.html)"], "acceptance_criteria": [], "depends_on": ["P1.AUDIT.BE02"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "docs/index.html already implements the .audit-diff before/after coloring pattern to reuse." },
+        { "id": "P1.AUDIT.QA01", "title": "Override/audit trail test", "category": "qa", "module": "audit",
+          "definition_refs": ["definition_data/testing/testing-definition.json#critical_test_scenarios.corrections_and_overrides"],
+          "description": "Faculty manual attendance + override with reason → audit entry visible to admin (E2E journey).", "deliverables": ["e2e/audit-trail.spec.ts"], "acceptance_criteria": [], "depends_on": ["P1.FE33"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ]
+    }
+  ]
+}

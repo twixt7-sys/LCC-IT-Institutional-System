@@ -1,0 +1,64 @@
+{
+  "$schema_note": "Phase 1 — Reports/Exports and Role Dashboards. Both sit on top of attendance_records (04-phase1-attendance-core.json) and are largely read/aggregation-only.",
+  "phase": { "id": "P1", "name": "Attendance-First Portal (Core Modules)", "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_1" },
+  "work_packages": [
+    {
+      "id": "P1.REPORTS",
+      "name": "Reports & Exports",
+      "module": "reports",
+      "goal": "Daily/weekly/monthly/semester reports, per student/subject/instructor; CSV, Excel (XLSX), PDF export.",
+      "definition_refs": ["definition_data/overview/module-registry.json#core_modules[reports]"],
+      "tasks": [
+        { "id": "P1.REPORTS.BE01", "title": "Session sheet + student + offering summary report endpoints", "category": "backend", "module": "reports",
+          "description": "GET /reports/session/:id, /reports/student/:id (range param), /reports/offering/:id/summary.", "definition_refs": ["definition_data/backend/api-specification.json#endpoints.reports[0..2]"],
+          "deliverables": ["modules/reports/*"], "acceptance_criteria": ["Rates computed from raw records match hand-computed fixtures (daily/weekly/monthly/semester)"], "depends_on": ["P1.QR.DB02"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.REPORTS.BE02", "title": "Instructor + department report endpoints", "category": "backend", "module": "reports",
+          "description": "GET /reports/instructor/:id, /reports/department (courseId/yearLevel filters).", "definition_refs": ["definition_data/backend/api-specification.json#endpoints.reports[3][5]"],
+          "deliverables": ["reports.controller instructor/department handlers"], "acceptance_criteria": [], "depends_on": ["P1.REPORTS.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.REPORTS.BE03", "title": "At-risk detection endpoint + daily at-risk-scan job (BR-07)", "category": "backend", "module": "reports",
+          "description": "GET /reports/at-risk; daily 18:00 cron detects 3-consecutive or ≥20% absences, notifies student + adviser.", "definition_refs": ["definition_data/backend/api-specification.json#endpoints.reports[4]", "definition_data/backend/backend-architecture.json#background_jobs[3]"],
+          "deliverables": ["at-risk query service + infra/jobs.ts at-risk-scan job"], "acceptance_criteria": ["At-risk detection: exactly 3 consecutive absences triggers; 2 does not (BR-07)"], "depends_on": ["P1.REPORTS.BE01", "P1.NOTIF.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.REPORTS.BE04", "title": "Async export endpoint (CSV/XLSX/PDF)", "category": "backend", "module": "reports",
+          "description": "POST /reports/export { report, params, format } — async for large ranges, delivered via notification with download link; exceljs (XLSX), pdfmake (PDF), native CSV.", "definition_refs": ["definition_data/backend/api-specification.json#endpoints.reports[6]", "definition_data/backend/backend-architecture.json#key_libraries.exports"],
+          "deliverables": ["export job handler + storage upload"], "acceptance_criteria": ["CSV/XLSX/PDF exports open and contain expected rows"], "depends_on": ["P1.REPORTS.BE02", "P1.NOTIF.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "Object storage provider + PDF/XLSX institutional branding needs SystemDefinition5.txt §4 and §14 answers." },
+        { "id": "P1.REPORTS.SEC01", "title": "Export rate limiting", "category": "security", "module": "reports",
+          "description": "10 exports/hour/user.", "definition_refs": ["definition_data/backend/api-specification.json#global.rate_limits"],
+          "deliverables": ["rateLimit.ts exports bucket"], "acceptance_criteria": [], "depends_on": ["P1.REPORTS.BE04"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.FE26", "title": "Reports pages (faculty + admin) — parameter form → preview → export", "category": "frontend", "module": "reports",
+          "description": "Session sheets, class summaries, per-student, at-risk (faculty); department reports with comparisons (admin); daily/weekly/monthly/semester ranges; async export notification flow.",
+          "definition_refs": ["definition_data/frontend/pages-and-routes.json#faculty_pages (Reports)", "definition_data/frontend/pages-and-routes.json#admin_pages (Department Reports)", "definition_data/frontend/frontend-architecture.json#key_screens_behavior.reports"],
+          "deliverables": ["features/reports/pages/Reports.tsx, DepartmentReports.tsx"], "acceptance_criteria": [], "depends_on": ["P1.REPORTS.BE04"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.REPORTS.QA01", "title": "Report accuracy + at-risk + export test suite", "category": "qa", "module": "reports",
+          "definition_refs": ["definition_data/testing/testing-definition.json#critical_test_scenarios.reports"],
+          "description": "Fixture-based rate calculation verification, at-risk boundary test, export content assertions.", "deliverables": ["apps/api tests for reports"], "acceptance_criteria": ["All 3 listed reports scenarios pass in CI"], "depends_on": ["P1.REPORTS.BE04"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.REPORTS.QA02", "title": "E2E: admin department report + XLSX export", "category": "qa", "module": "reports",
+          "definition_refs": ["definition_data/testing/testing-definition.json#critical_test_scenarios.e2e_journeys[5]"],
+          "description": "Admin: run department report and export XLSX.", "deliverables": ["e2e/department-report.spec.ts"], "acceptance_criteria": [], "depends_on": ["P1.FE26"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ]
+    },
+    {
+      "id": "P1.DASHBOARD",
+      "name": "Role Dashboards",
+      "module": "dashboard",
+      "goal": "Role-shaped widgets and charts via a single role-aware endpoint.",
+      "definition_refs": ["definition_data/overview/module-registry.json#core_modules[dashboard]"],
+      "tasks": [
+        { "id": "P1.DASHBOARD.BE01", "title": "GET /dashboard — role-aware payload", "category": "backend", "module": "dashboard",
+          "description": "student (next class, rates, warnings) / faculty (today's classes, live counts, at-risk) / admin (KPIs, trends, comparisons).", "definition_refs": ["definition_data/backend/api-specification.json#endpoints.dashboard"],
+          "deliverables": ["modules/dashboard/dashboard.controller.ts"], "acceptance_criteria": ["Single endpoint, payload shape branches by req.user.role"], "depends_on": ["P1.REPORTS.BE03", "P1.MONITORING.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.FE27", "title": "Student Dashboard widgets", "category": "frontend", "module": "dashboard",
+          "description": "Next class card, overall attendance rate ring, per-subject rate bars, recent activity list, at-risk warning banner.", "definition_refs": ["definition_data/frontend/pages-and-routes.json#student_pages (Student Dashboard)"],
+          "deliverables": ["StudentDashboard.tsx"], "acceptance_criteria": [], "depends_on": ["P1.DASHBOARD.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "docs/index.html has working .ring / .metric-ring / .rail carousel components to port." },
+        { "id": "P1.FE28", "title": "Faculty Dashboard widgets", "category": "frontend", "module": "dashboard",
+          "description": "Today's classes with Start Session buttons, active session live counter, weekly/monthly class rate trend, at-risk students table, pending corrections badge.", "definition_refs": ["definition_data/frontend/pages-and-routes.json#faculty_pages (Faculty Dashboard)"],
+          "deliverables": ["FacultyDashboard.tsx"], "acceptance_criteria": [], "depends_on": ["P1.DASHBOARD.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.FE29", "title": "Admin Dashboard widgets", "category": "frontend", "module": "dashboard",
+          "description": "KPI tiles, term trend chart, section comparison chart, low-attendance classes table, recent audit feed, OSAS sync status card.", "definition_refs": ["definition_data/frontend/pages-and-routes.json#admin_pages (Admin Dashboard)"],
+          "deliverables": ["AdminDashboard.tsx"], "acceptance_criteria": [], "depends_on": ["P1.DASHBOARD.BE01", "P1.AUDIT.BE01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "Cross-file dependency on 06-phase1-notifications-settings-audit.json#P1.AUDIT.BE01." },
+        { "id": "P1.DASHBOARD.QA01", "title": "Accessible-chart + dashboard component tests", "category": "qa", "module": "dashboard",
+          "description": "axe-core assertions on dashboard pages; charts include accessible data-table toggle.", "definition_refs": ["definition_data/testing/testing-definition.json#tooling.accessibility", "definition_data/frontend/frontend-architecture.json#accessibility"],
+          "deliverables": ["accessibility test specs for the 3 dashboards"], "acceptance_criteria": [], "depends_on": ["P1.FE27", "P1.FE28", "P1.FE29"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ]
+    }
+  ]
+}

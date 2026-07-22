@@ -1,0 +1,67 @@
+{
+  "$schema_note": "Phase 1 — staging/production deployment, backups, monitoring, and the go-live gate. This is the last work package before Phase 1 is 'done' — nothing here should start until the core modules (02-06) are feature-complete and P1.QA/P1.SEC crosscutting gates (07) are green.",
+  "phase": { "id": "P1", "name": "Attendance-First Portal (Core Modules)", "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_1" },
+  "work_packages": [
+    {
+      "id": "P1.DEVOPS.STAGING",
+      "name": "Staging Environment & UAT",
+      "goal": "UAT mirror of production; Department Admin sign-off gate before any production deploy.",
+      "definition_refs": ["definition_data/deployment/deployment-definition.json#environments.staging"],
+      "tasks": [
+        { "id": "P1.DEVOPS.STAGING01", "title": "Stand up staging stack", "category": "devops", "module": "n/a",
+          "description": "Same docker-compose topology as production, separate host/subdomain; real OSAS sandbox credentials if available, otherwise mock.", "definition_refs": ["definition_data/deployment/deployment-definition.json#environments.staging"],
+          "deliverables": ["Running staging environment"], "acceptance_criteria": [], "depends_on": ["P0.INFRA.DEVOPS05", "P0.CI.DEVOPS02"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "Needs a second host/subdomain — see SystemDefinition5.txt §8." },
+        { "id": "P1.DEVOPS.STAGING02", "title": "Seed staging with anonymized/demo data", "category": "devops", "module": "n/a",
+          "description": "Anonymized copy or full seed; wiped per release cycle.", "definition_refs": ["definition_data/deployment/deployment-definition.json#environments.staging.data"],
+          "deliverables": ["Staging seed procedure"], "acceptance_criteria": [], "depends_on": ["P1.DEVOPS.STAGING01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.DEVOPS.STAGING03", "title": "Department Admin UAT sign-off checklist", "category": "docs", "module": "n/a",
+          "description": "Formal gate: staging must be signed off by Department Admin before production deploy proceeds.", "definition_refs": ["definition_data/deployment/deployment-definition.json#environments.staging.gate"],
+          "deliverables": ["UAT checklist document + sign-off record"], "acceptance_criteria": [], "depends_on": ["P1.DEVOPS.STAGING02"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ]
+    },
+    {
+      "id": "P1.DEVOPS.PROD",
+      "name": "Production Hardening & Go-Live",
+      "goal": "Production environment hardened per deployment-definition.json, backups/DR verified, monitoring live, launch executed.",
+      "definition_refs": ["definition_data/deployment/deployment-definition.json#environments.production"],
+      "tasks": [
+        { "id": "P1.DEVOPS.PROD01", "title": "Production hardening checklist", "category": "devops", "module": "n/a",
+          "description": "NODE_ENV=production, debug/seed routes disabled, CORS locked to portal origin, DB user least-privilege grants, append-only permissions for audit tables.", "definition_refs": ["definition_data/deployment/deployment-definition.json#environments.production.hardening"],
+          "deliverables": ["Verified production .env + DB role grants"], "acceptance_criteria": [], "depends_on": ["P1.DEVOPS.STAGING03"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.DEVOPS.PROD02", "title": "Backups: nightly pg_dump + offsite copy", "category": "devops", "module": "n/a",
+          "description": "Encrypted daily dumps (02:30), 30-day local retention + weekly offsite; object storage upload versioning + weekly sync verification.", "definition_refs": ["definition_data/deployment/deployment-definition.json#backups_dr", "definition_data/security/security-definition.json#data_protection.backups"],
+          "deliverables": ["Backup cron + offsite sync script"], "acceptance_criteria": ["A restore has actually been tested, not just assumed to work (see P1.DEVOPS.PROD05)"], "depends_on": ["P1.DEVOPS.PROD01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "Needs object storage provider decided — see SystemDefinition5.txt §9." },
+        { "id": "P1.DEVOPS.PROD03", "title": "Monitoring & alerting", "category": "devops", "module": "n/a",
+          "description": "/healthz probed every 60s by an uptime monitor; pino JSON logs → docker log driver (+ optional Loki/Grafana); metrics: scan latency p95, 5xx rate, open sessions count, OSAS sync outcomes, DB pool saturation; alerts: healthz failures (2 consecutive), OSAS sync FAILED, error rate spike, disk >80%, cert expiry <14 days.",
+          "definition_refs": ["definition_data/deployment/deployment-definition.json#monitoring_observability"],
+          "deliverables": ["Uptime monitor configured", "Alert channel wired"], "acceptance_criteria": [], "depends_on": ["P1.DEVOPS.PROD01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "Monitoring tool + alert channel choice — see SystemDefinition5.txt §11." },
+        { "id": "P1.DEVOPS.PROD04", "title": "Rollback procedure verified", "category": "devops", "module": "n/a",
+          "description": "docker compose pull previous tag → up -d → verify /healthz; confirm migrations are actually forward-compatible for the release being shipped.", "definition_refs": ["definition_data/deployment/deployment-definition.json#ci_cd.main_pipeline", "definition_data/maintenance/maintenance-definition.json#runbooks.rollback"],
+          "deliverables": ["Documented + rehearsed rollback run"], "acceptance_criteria": [], "depends_on": ["P1.DEVOPS.PROD01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.DEVOPS.PROD05", "title": "Restore drill from a real backup", "category": "devops", "module": "n/a",
+          "description": "Stop api → restore latest dump via restore script → prisma migrate status check → start api → verify healthz + spot-check attendance data. RPO 24h, RTO 4h targets.", "definition_refs": ["definition_data/deployment/deployment-definition.json#backups_dr.restore", "definition_data/maintenance/maintenance-definition.json#runbooks.database_restore"],
+          "deliverables": ["Drill executed once before go-live; scheduled once/semester thereafter"], "acceptance_criteria": ["RTO 4h target actually met in the drill, not assumed"], "depends_on": ["P1.DEVOPS.PROD02"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.DEVOPS.PROD06", "title": "Go-live checklist + launch execution", "category": "devops", "module": "n/a",
+          "description": "Merge to main → CI deploys → verify /healthz + one live scan in staging-mode smoke → announce via maintenance banner if downtime expected.", "definition_refs": ["definition_data/maintenance/maintenance-definition.json#runbooks.deploy"],
+          "deliverables": ["Go-live checklist executed", "Portal live at production domain"], "acceptance_criteria": ["All 6 E2E critical journeys pass against production immediately post-launch"], "depends_on": ["P1.DEVOPS.PROD03", "P1.DEVOPS.PROD04", "P1.DEVOPS.PROD05", "P1.SEC.PRELAUNCH01"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "Target launch date — see SystemDefinition5.txt §2." }
+      ]
+    },
+    {
+      "id": "P1.DOCS",
+      "name": "Documentation & Handoff",
+      "goal": "README/definition_data kept current, ops log started, .env.example current, admin/faculty user guides ready before classes start.",
+      "definition_refs": ["definition_data/maintenance/maintenance-definition.json#documentation_upkeep"],
+      "tasks": [
+        { "id": "P1.DOCS01", "title": "Admin & faculty user guides", "category": "docs", "module": "n/a",
+          "description": "Refreshed each semester before classes start; format per SystemDefinition5.txt §14 answer (in-app help / PDF / video).", "definition_refs": ["definition_data/maintenance/maintenance-definition.json#documentation_upkeep"],
+          "deliverables": ["User guide documents"], "acceptance_criteria": [], "depends_on": ["P1.DEVOPS.STAGING03"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.DOCS02", "title": "Ops log + incident-response process live", "category": "docs", "module": "n/a",
+          "description": "SEV1/2/3 severities, escalation process, postmortem template ready before go-live.", "definition_refs": ["definition_data/maintenance/maintenance-definition.json#incident_response"],
+          "deliverables": ["Ops log template", "Incident response doc"], "acceptance_criteria": [], "depends_on": ["P1.DEVOPS.PROD03"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" },
+        { "id": "P1.DOCS03", "title": "Definition-sync PR checklist item", "category": "docs", "module": "n/a",
+          "description": "Any behavior change must update the definition files (SystemDefinition*.json, definition_data/**) in the same PR — add as a PR template checkbox.", "definition_refs": ["definition_data/maintenance/maintenance-definition.json#updates_and_dependencies.definition_sync_rule"],
+          "deliverables": [".github/pull_request_template.md"], "acceptance_criteria": [], "depends_on": ["P0.CI.DEVOPS03"], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ]
+    }
+  ]
+}

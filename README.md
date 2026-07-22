@@ -47,6 +47,7 @@ Choices favor **modern industry standards that stay lightweight**: Vite, a modul
 | [SystemDefinition2.json](SystemDefinition2.json) | Functional spec — permissions matrix, business rules, full entity fields, endpoint list, validation & security rules |
 | [SystemDefinition3.json](SystemDefinition3.json) | High-level seed — portal identity, roles, core & future modules |
 | [SystemDefinition4.txt](SystemDefinition4.txt) | Q&A requirements source — identity/OSAS integration, attendance & QR policy, data sources, monitoring, reports, security |
+| [SystemDefinition5.txt](SystemDefinition5.txt) | Q&A **development & execution** questionnaire — team, timeline, tooling, exact plugin choices, hosting, credentials, CI/CD gates, budget, risks. Answers fill in `development_data/` |
 
 ### `definition_data/` — structured per-area definitions
 
@@ -60,6 +61,33 @@ definition_data/
 ├── deployment/    environments, Docker/nginx topology, CI/CD, backups, monitoring
 ├── testing/       strategy, tooling, coverage targets, key test scenarios
 └── maintenance/   operations runbook, backups, updates, support workflows
+```
+
+### `development_data/` — Work Breakdown Structure (WBS)
+
+A complete, detailed WBS derived from `definition_data/**` and the `docs/index.html`
+prototype: every module broken into work packages and tasks (backend/frontend/database/
+security/QA/devops), each carrying its acceptance criteria and a pointer back to the
+definition it implements. Structural fields are fully populated; execution fields
+(estimate, priority, assignee, dates, status) are placeholders to be filled in using your
+answers to [SystemDefinition5.txt](SystemDefinition5.txt).
+
+```
+development_data/
+└── wbs/
+    ├── 00-wbs-index.json                         legend, ID scheme, phase map, critical path
+    ├── 01-phase0-foundations.json                monorepo, DB bootstrap, CI, base infra
+    ├── 02-phase1-auth-identity.json              auth + OSAS integration
+    ├── 03-phase1-people-catalog.json             students, faculty, subjects/sections/offerings, calendar
+    ├── 04-phase1-attendance-core.json            QR engine, monitoring, corrections (highest risk area)
+    ├── 05-phase1-reports-dashboard.json          reports/exports, role dashboards
+    ├── 06-phase1-notifications-settings-audit.json
+    ├── 07-phase1-crosscutting-qa-security.json   shared UI shell, continuous testing & security
+    ├── 08-phase1-deployment-launch.json          staging, production, backups, go-live
+    ├── 09-phase2-modules.json                    Phase 2 stubs (announcements, profile, digital ID)
+    ├── 10-phase3-modules.json                    Phase 3 stubs (grades, clearance, lab borrowing)
+    ├── 11-phase4-modules.json                    Phase 4 stubs (events, orgs, advising, evaluation)
+    └── 12-resourcing-timeline-template.json      team, timeline, budget, risk register — all placeholders
 ```
 
 ## 🚀 Planned Roadmap

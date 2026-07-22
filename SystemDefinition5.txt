@@ -1,0 +1,318 @@
+SystemDefinition5 — Development & Execution Questionnaire
+============================================================
+Purpose: SystemDefinition.json / 2 / 3 / 4 and definition_data/** already define WHAT the
+Legacy IT Student Portal is (roles, modules, API, schema, security, deployment shape,
+testing strategy, ops runbooks). This document asks everything still needed to answer
+WHO builds it, WHEN, WITH WHAT EXACT TOOLS/PLUGINS, and WHERE it actually runs.
+
+Answer inline under each "- " line (same format as SystemDefinition4.txt). Leave a line
+blank if genuinely undecided — that's useful information too (it means the matching WBS
+task in development_data/wbs/ stays a placeholder until you circle back).
+
+Your answers are what you'll use to fill in the null/placeholder fields across
+development_data/wbs/*.json (estimate, priority, assignee, dates, status, and every
+"_fill_from" pointer in 12-resourcing-timeline-template.json).
+
+
+1. Team & Roles
+    Is this solo development, or a team? If a team, how many people?
+    -
+
+    For each person: name, role (backend / frontend / database / devops / QA / design /
+    full-stack), and rough hours/week availability?
+    -
+
+    Who is the single decision-maker for scope changes (adding/cutting features, changing
+    the WBS)?
+    -
+
+    What timezone(s) are contributors in?
+    -
+
+    Are there external stakeholders who must sign off on anything (OSAS office, IT
+    Department head, registrar, data privacy officer)? On what, specifically?
+    -
+
+
+2. Timeline & Milestones
+    Target project start date?
+    -
+
+    Is there a hard deadline for Phase 1 go-live (e.g., tied to the start of a specific
+    academic term)? What date, and what happens if it's missed?
+    -
+
+    Do you want a pilot / soft-launch first (e.g., one section or one subject) before
+    rolling out to all BSIT sections? What scope and timing?
+    -
+
+    Preferred working rhythm: fixed sprints (1 week? 2 weeks?) or continuous Kanban flow,
+    or informal/self-paced (solo dev)?
+    -
+
+    Are there academic-calendar blackout periods where no deploys should happen (exam
+    week, enrollment period)?
+    -
+
+
+3. Development Environment & Tooling
+    What OS do contributors develop on (Windows/Mac/Linux, or mixed)?
+    -
+
+    Standard editor/IDE (VS Code assumed — confirm or override)?
+    -
+
+    Node.js version manager preference (nvm / volta / fnm / none — just install Node 20
+    directly)?
+    -
+
+    Local Postgres via Docker Desktop, or a native Postgres install? Any objection to
+    Docker as a dev dependency?
+    -
+
+    Project management / task-tracking tool to import development_data/wbs/*.json into
+    (GitHub Projects / Jira / Trello / Notion / Linear / spreadsheet / none)?
+    -
+
+    Team communication tool (Slack / Discord / Microsoft Teams / email / in-person only)?
+    -
+
+
+4. Tech Stack Confirmation & Plugin/Library Choices
+    Confirm or override: React 18 + TypeScript + Vite for the frontend, Node 20 + Express
+    + TypeScript for the backend, PostgreSQL 16 + Prisma for the database (this is what
+    every definition_data file and the WBS assume).
+    -
+
+    shadcn/ui components: which specific components do you know you'll need on day one
+    (Button, Dialog, Table, Tabs, Toast, DatePicker, Combobox, Popover, Sheet/Drawer,
+    DropdownMenu, others)? Anything beyond the shadcn/Radix default set?
+    -
+
+    Any additional frontend plugins needed beyond frontend-architecture.json's list —
+    e.g. a virtualized-list library for long rosters (react-virtual), a rich text editor
+    (for future Announcements), a drag-and-drop library, a URL-state library (nuqs)?
+    -
+
+    Chart needs beyond Recharts line/bar/ring charts already planned — any heatmaps,
+    calendar heatmaps, or Sankey/flow diagrams anticipated?
+    -
+
+    QR scanning (html5-qrcode) — any known device/browser constraints to design around
+    (specific Android/iOS versions, low-end classroom tablets, kiosk hardware)?
+    -
+
+    i18n: English-only is the current assumption — should react-i18next scaffolding be
+    added now for future-proofing, or deferred until it's actually needed?
+    -
+
+    PWA scope: installable shell only (current plan), or should an offline scan-queue
+    (sync when connectivity returns) be pulled into Phase 1 instead of staying a "later"
+    idea?
+    -
+
+    Any interest in reconsidering Express for something else (Fastify, NestJS), or is
+    Express confirmed?
+    -
+
+    Email templates: confirm MJML, and do you have existing institutional email branding
+    (logo, colors, footer/signature) to build templates around?
+    -
+
+    PDF export (pdfmake) and Excel export (exceljs): any specific institutional report
+    branding requirements (letterhead, logo, signature blocks, official watermarks)?
+    -
+
+
+5. Architecture Decisions
+    Confirm: modular monolith (not microservices), single Postgres database, Socket.IO
+    for realtime. Any objection or reason to reconsider any of these?
+    -
+
+    Is this system scoped only to the LCC IT Department, or should the architecture
+    anticipate other departments/campuses adopting it later (multi-tenancy question)?
+    -
+
+    "Expandable module" system — is the current design (internal feature-flagged folders,
+    module-registry.json) sufficient, or do you want true pluggable/installable modules
+    (like a plugin marketplace) eventually?
+    -
+
+
+6. Repository & Version Control Workflow
+    Git branching strategy: trunk-based with short-lived feature branches + PR (default
+    assumption), GitFlow, or something else?
+    -
+
+    Commit message convention — Conventional Commits, or free-form?
+    -
+
+    PR review requirement: minimum number of reviewers? Does a solo developer still
+    self-review via a checklist, or skip formal review?
+    -
+
+    Who is allowed to merge to main, and who cuts releases/tags?
+    -
+
+    Repository hosting confirmed as GitHub — private or public repo? Who has write
+    access, and how is access granted/revoked?
+    -
+
+
+7. Database & Environment Configuration
+    Where does DATABASE_URL point in each environment — local Docker for dev, and what
+    for staging/production (self-hosted Postgres on the VPS, or a managed provider)?
+    -
+
+    Who holds and manages the real secret values (JWT_ACCESS_SECRET, QR_ENC_KEY,
+    OSAS_API_KEY, SMTP credentials, storage credentials)? What tool (password manager,
+    host secret store, GitHub encrypted secrets)?
+    -
+
+    What real reference data exists right now to seed instead of the mock data in
+    docs/index.html — actual list of courses, sections, subjects, current academic term
+    dates?
+    -
+
+
+8. Deployment & Hosting
+    Confirmed target: single VPS + Docker Compose + nginx. Do you already have a VPS
+    provider (DigitalOcean, Linode, AWS Lightsail, Vultr, an existing campus server), or
+    does one need to be selected/provisioned?
+    -
+
+    Domain name for the portal (portal.<institution-domain>) — is it registered? Who
+    manages DNS records?
+    -
+
+    Is Let's Encrypt/certbot acceptable, or does the institution require a specific CA?
+    -
+
+    Staging environment: separate VPS/subdomain, or same host on a different port/compose
+    project?
+    -
+
+    Who has production server SSH/sudo access, and how are those credentials rotated?
+    -
+
+
+9. Third-Party Services & Credentials
+    OSAS API: do you have API documentation and/or sandbox credentials yet, or is this
+    still to be arranged? Who is the point of contact at the OSAS office?
+    -
+
+    OSAS API auth mechanism (API key, OAuth client credentials, mutual TLS, IP
+    allowlisting) — is this known yet?
+    -
+
+    SMTP provider choice — institutional Google Workspace/Microsoft 365 relay, SendGrid,
+    Mailgun, Amazon SES, other?
+    -
+
+    Object storage provider for attachments/exports — AWS S3, DigitalOcean Spaces,
+    Cloudflare R2, self-hosted MinIO, or defer this and use local disk for Phase 1?
+    -
+
+    Any SMS provider needed for notifications, or is email + in-app confirmed sufficient
+    for Phase 1?
+    -
+
+
+10. CI/CD & Quality Gates
+    GitHub Actions confirmed — GitHub-hosted runners fine, or is a self-hosted runner
+    needed (e.g. for network access to a campus-internal OSAS sandbox)?
+    -
+
+    Exact required status checks to enforce via branch protection (lint, typecheck, unit,
+    integration, npm audit, build — anything to add or relax)?
+    -
+
+    Is production deploy fully automatic on merge to main, or does it require a manual
+    approval step/button?
+    -
+
+    Should the 90%+ coverage target on business-rule services (auth, qr, osas) be a hard
+    CI-failing gate, or advisory/reported-only?
+    -
+
+
+11. Monitoring, Alerting & Support
+    Uptime monitoring tool preference (UptimeRobot, Better Uptime, Grafana Cloud,
+    self-hosted, none for now)?
+    -
+
+    Alert delivery channel — email, SMS, Slack/Discord webhook, phone call for SEV1?
+    -
+
+    Who is the first responder / on-call for SEV1 incidents during class hours (07:00-21:00
+    Asia/Manila per the availability NFR)?
+    -
+
+    Is a full Loki/Grafana log stack in scope for Phase 1, or is plain `docker logs` /
+    file-based logging acceptable until the system is bigger?
+    -
+
+
+12. Security & Compliance
+    Any formal compliance requirement to document — Philippine Data Privacy Act (RA
+    10173) obligations, institutional data-handling policy, NPC registration?
+    -
+
+    Confirm or adjust the password/lockout/OTP policy already defined in
+    security-definition.json (5 attempts/15min lock, optional admin OTP)?
+    -
+
+    Is a formal third-party penetration test required before go-live, or is an internal
+    OWASP-checklist self-review (already planned as P1.SEC.PRELAUNCH01) sufficient?
+    -
+
+    Who holds the backup-encryption key, and what happens if that person is unavailable
+    during a restore?
+    -
+
+
+13. Budget & Constraints
+    Is there an approved budget for hosting, domain, SMTP, and object storage, or must
+    Phase 1 run on free/near-free tiers?
+    -
+
+    Any licensing constraint — must every dependency be open-source/free, or is limited
+    paid tooling acceptable (e.g. a paid uptime monitor, a paid PM tool)?
+    -
+
+    Expected number of concurrent users at actual launch vs. the ~2,000 students / ~100
+    concurrent scans design target — is launch scope smaller (pilot) or matches full
+    scale immediately?
+    -
+
+
+14. Documentation & Handoff
+    Who maintains documentation after the initial build — the same dev team, or IT
+    Department staff taking over?
+    -
+
+    Preferred format for admin/faculty user guides — in-app help panels, downloadable
+    PDF manuals, short video walkthroughs, or a mix?
+    -
+
+    Is there an existing institutional branding guide (official logo files, exact color
+    palette, fonts) to reconcile with the navy/white theme already used in
+    docs/index.html, or is that prototype's palette the de facto standard going forward?
+    -
+
+
+15. Risks & Assumptions
+    What's the single biggest risk to hitting your timeline (OSAS API access delays,
+    limited developer time, campus Wi-Fi reliability, exam-period constraints, budget
+    approval)?
+    -
+
+    Is there anything in definition_data/** that you now think is wrong or needs to
+    change before development starts (e.g. a business rule, a role permission, an NFR
+    target)?
+    -
+
+    Anything in the docs/index.html prototype that should NOT be built as shown — i.e.
+    mock data, demo shortcuts, or simplified flows that were fine for a click-through
+    demo but must be handled differently in the real implementation?
+    -

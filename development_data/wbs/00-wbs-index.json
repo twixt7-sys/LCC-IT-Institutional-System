@@ -1,0 +1,88 @@
+{
+  "$schema_note": "Work Breakdown Structure (WBS) index — legend, ID scheme, phase map, and dependency/critical-path notes for the Legacy IT Student Portal. Generated from definition_data/** and docs/index.html (BSIT interactive prototype). This is a TEMPLATE: structural fields (id, title, description, deliverables, acceptance_criteria, depends_on, definition_refs) are fully populated from the definitions; execution fields (estimate, priority, assignee, dates, status) are intentionally null/placeholder — fill them in using the answers you provide in ../../SystemDefinition5.txt.",
+  "generated_on": "2026-07-22",
+  "sources": [
+    "definition_data/overview/system-overview.json",
+    "definition_data/overview/roles-and-permissions.json",
+    "definition_data/overview/module-registry.json",
+    "definition_data/backend/backend-architecture.json",
+    "definition_data/backend/api-specification.json",
+    "definition_data/frontend/frontend-architecture.json",
+    "definition_data/frontend/pages-and-routes.json",
+    "definition_data/database/database-schema.json",
+    "definition_data/security/security-definition.json",
+    "definition_data/deployment/deployment-definition.json",
+    "definition_data/testing/testing-definition.json",
+    "definition_data/maintenance/maintenance-definition.json",
+    "docs/index.html"
+  ],
+  "how_to_use": [
+    "Read every task's definition_refs to see exactly which definition_data section it implements.",
+    "Fill execution fields per task: estimate {value, unit, confidence}, priority, assignee, status, start_date, due_date, risk, notes.",
+    "Answer SystemDefinition5.txt first — its answers (team size, timeline, hosting, plugin choices) determine most of the placeholder values below.",
+    "Do not fold or split tasks unless the underlying definition_data changes — keep this file's IDs stable so external trackers (Jira/GitHub Projects/Notion) can reference them permanently.",
+    "When a phase begins, promote its file's tasks into whatever live project-management tool the team chooses (see 12-resourcing-timeline-template.json); this file remains the source-of-truth WBS, the live tool is the day-to-day view."
+  ],
+  "id_scheme": {
+    "pattern": "P<phase>.<WORK_PACKAGE_CODE>.<CATEGORY_ABBR><seq>",
+    "work_package_pattern": "P<phase>.<WORK_PACKAGE_CODE>",
+    "phase_values": ["P0", "P1", "P2", "P3", "P4"],
+    "category_abbr": {
+      "BE": "backend (Express API — routes/controllers/services/repositories)",
+      "FE": "frontend (React SPA — pages/components/hooks)",
+      "DB": "database (Prisma schema, migrations, seed data, indexes)",
+      "SEC": "security (auth, crypto, OWASP hardening, audit wiring)",
+      "QA": "testing (unit, integration, component, E2E, load, accessibility)",
+      "DEVOPS": "deployment / CI-CD / infrastructure / observability",
+      "DOC": "documentation / runbooks / user guides",
+      "INT": "third-party integration (OSAS, SMTP, object storage)"
+    },
+    "example": "P1.QR.BE03 = Phase 1, QR Attendance work package, 3rd backend task"
+  },
+  "status_legend": ["not_started", "in_progress", "blocked", "in_review", "done", "deferred", "cancelled"],
+  "priority_legend": ["critical", "high", "medium", "low"],
+  "task_object_shape": {
+    "id": "string — stable WBS id, see id_scheme",
+    "title": "string",
+    "description": "string",
+    "category": "one of category_abbr keys (lowercase)",
+    "module": "module-registry.json key this task belongs to",
+    "definition_refs": "array of definition_data/docs.html pointers this task implements",
+    "deliverables": "array of concrete outputs (files, endpoints, pages, migrations)",
+    "acceptance_criteria": "array — how you know the task is actually done",
+    "depends_on": "array of WBS ids that must be done first",
+    "estimate": { "value": null, "unit": "hours", "confidence": null, "_fill_from": "SystemDefinition5.txt §2, §13" },
+    "priority": null,
+    "assignee": null,
+    "status": "not_started",
+    "start_date": null,
+    "due_date": null,
+    "risk": null,
+    "notes": ""
+  },
+  "phase_map": [
+    { "phase": "P0", "name": "Project Foundations & Environment", "file": "01-phase0-foundations.json", "roadmap_ref": "n/a — pre-Phase-1 scaffolding", "gates_into": ["P1"] },
+    { "phase": "P1", "name": "Attendance-First Portal (Core Modules)", "files": [
+        "02-phase1-auth-identity.json",
+        "03-phase1-people-catalog.json",
+        "04-phase1-attendance-core.json",
+        "05-phase1-reports-dashboard.json",
+        "06-phase1-notifications-settings-audit.json",
+        "07-phase1-crosscutting-qa-security.json",
+        "08-phase1-deployment-launch.json"
+      ], "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_1" },
+    { "phase": "P2", "name": "Announcements, Extended Student Profile, Digital ID", "file": "09-phase2-modules.json", "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_2" },
+    { "phase": "P3", "name": "Grades, Clearance, Laboratory Borrowing", "file": "10-phase3-modules.json", "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_3" },
+    { "phase": "P4", "name": "Events, Organizations, Advising, Evaluation", "file": "11-phase4-modules.json", "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_4" }
+  ],
+  "resourcing_file": "12-resourcing-timeline-template.json",
+  "critical_path_notes": [
+    "P0 (monorepo, Postgres, CI, base infra) blocks everything — nothing in P1 can start until packages/shared and the Prisma schema exist.",
+    "P1.AUTH and P1.OSAS block almost every other P1 work package: students/faculty identity, session auth, and route guards all depend on them.",
+    "P1.CATALOG (subjects/sections/offerings/schedules/enrollments) must exist before P1.QR can generate real sessions.",
+    "P1.QR (dynamic QR engine + scan validation chain) is the highest-risk, highest-priority work package — it is the system's primary module and the reason the project exists. It blocks P1.MONITORING, P1.CORRECTIONS, and most of P1.REPORTS/P1.DASHBOARD.",
+    "P1.CROSSCUTTING (QA + security hardening) should run continuously alongside every work package, not as a phase-end activity — testing_definition.json requires tests in the same PR as new business rules.",
+    "P1.DEVOPS (staging/production deploy, backups, monitoring) is the gate before go-live; testing-definition.json's E2E journeys and Department Admin staging sign-off (deployment-definition.json#environments.staging.gate) must pass first.",
+    "P2/P3/P4 files are intentionally shallow — module-registry.json only defines them at summary level; expand each into a full work-package breakdown (same depth as P1) when that phase is actually scheduled."
+  ]
+}

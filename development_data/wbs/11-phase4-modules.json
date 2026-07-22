@@ -1,0 +1,58 @@
+{
+  "$schema_note": "Phase 4 — Events, Organizations, Advising, Evaluation. module-registry.json only defines these at summary level, so this file is intentionally shallow. Expand each work package to the same depth as the Phase 1 files (02-08) when Phase 4 is actually scheduled.",
+  "phase": { "id": "P4", "name": "Events, Organizations, Advising, Evaluation", "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_4" },
+  "work_packages": [
+    {
+      "id": "P4.EVENTS",
+      "name": "Events",
+      "module": "events",
+      "goal": "Event creation with QR attendance reuse (event sessions).",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[events]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.QR"],
+      "stub_tasks": [
+        { "id": "P4.EVENTS.PLAN01", "title": "Expand into full WBS (event entity, non-offering-anchored sessions, audience targeting, turnout reporting)", "category": "docs", "module": "events", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "docs/index.html already has a working Events prototype (DB.events, .evt-card, .live-feed patterns) — a strong starting reference for this phase's UI." }
+      ],
+      "open_questions": ["Is class_sessions reused directly for events (schedule_id nullable already supports this) or does an events module get its own session table?", "Multi-day events — single QR session or one per day?"]
+    },
+    {
+      "id": "P4.ORGANIZATIONS",
+      "name": "Organizations",
+      "module": "organizations",
+      "goal": "Student orgs, membership, officers.",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[organizations]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.STUDENTS"],
+      "stub_tasks": [
+        { "id": "P4.ORGANIZATIONS.PLAN01", "title": "Expand into full WBS (org entity, membership/officer roles, org-scoped announcements/events integration)", "category": "docs", "module": "organizations", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ],
+      "open_questions": ["Does this need its own RBAC layer (org officer role) on top of the 5 existing roles?"]
+    },
+    {
+      "id": "P4.ADVISING",
+      "name": "Advising",
+      "module": "advising",
+      "goal": "Adviser-student consultations and notes.",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[advising]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.STUDENTS", "P1.FACULTY"],
+      "stub_tasks": [
+        { "id": "P4.ADVISING.PLAN01", "title": "Expand into full WBS (consultation scheduling, adviser notes, at-risk hand-off from P1.REPORTS.BE03)", "category": "docs", "module": "advising", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "students.adviser_faculty_id already exists in the Phase 1 schema — this module extends an existing relationship, not a new one." }
+      ],
+      "open_questions": ["Are adviser notes visible to the student, or staff-only?", "Does at-risk notification (P1.REPORTS.BE03) route directly into an advising case here?"]
+    },
+    {
+      "id": "P4.EVALUATION",
+      "name": "Evaluation",
+      "module": "evaluation",
+      "goal": "Faculty/subject evaluation forms and analytics.",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[evaluation]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.CATALOG", "P1.FACULTY"],
+      "stub_tasks": [
+        { "id": "P4.EVALUATION.PLAN01", "title": "Expand into full WBS (form builder or fixed form, anonymity model, submission window tied to academic_terms, analytics/reporting)", "category": "docs", "module": "evaluation", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ],
+      "open_questions": ["Must responses be anonymous to faculty, and if so what does that mean for the audit_logs append-only actor tracking convention used everywhere else?", "Fixed institutional evaluation form or a form builder?"]
+    }
+  ]
+}

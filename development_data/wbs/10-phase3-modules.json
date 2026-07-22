@@ -1,0 +1,45 @@
+{
+  "$schema_note": "Phase 3 — Grades, Clearance, Laboratory Borrowing. module-registry.json only defines these at summary level, so this file is intentionally shallow. Expand each work package to the same depth as the Phase 1 files (02-08) when Phase 3 is actually scheduled.",
+  "phase": { "id": "P3", "name": "Grades, Clearance, Laboratory Borrowing", "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_3" },
+  "work_packages": [
+    {
+      "id": "P3.GRADES",
+      "name": "Grades",
+      "module": "grades",
+      "goal": "Grade encoding, viewing, and term summaries.",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[grades]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.CATALOG", "P1.STUDENTS", "P1.FACULTY"],
+      "stub_tasks": [
+        { "id": "P3.GRADES.PLAN01", "title": "Expand into full WBS (grading scheme, encoding workflow + deadlines, faculty encoding UI, student viewing UI, term summary computation)", "category": "docs", "module": "grades", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": "Grades are often institutionally sensitive/regulated data — confirm whether this even belongs in the portal vs. staying in a registrar system before building.", "notes": "" }
+      ],
+      "open_questions": ["Does OSAS already own grades, making this a sync/display module rather than a source-of-truth encoding module?", "What grading scale (numeric, letter, GWA computation rules)?", "Grade change/appeal workflow — similar to attendance corrections?"]
+    },
+    {
+      "id": "P3.CLEARANCE",
+      "name": "Clearance",
+      "module": "clearance",
+      "goal": "Signatory workflow for term clearance.",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[clearance]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.STUDENTS", "P1.CATALOG"],
+      "stub_tasks": [
+        { "id": "P3.CLEARANCE.PLAN01", "title": "Expand into full WBS (signatory roles/routing, per-signatory approve/hold, student clearance-status dashboard)", "category": "docs", "module": "clearance", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ],
+      "open_questions": ["Who are the signatories (department admin, librarian, cashier, adviser) and are they all portal users or external offices?", "Is clearance tied to attendance thresholds from this system?"]
+    },
+    {
+      "id": "P3.LAB_BORROWING",
+      "name": "Laboratory Borrowing",
+      "module": "lab-borrowing",
+      "goal": "Equipment inventory, borrow/return, accountability.",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[lab-borrowing]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.STUDENTS", "P1.FACULTY"],
+      "stub_tasks": [
+        { "id": "P3.LAB_BORROWING.PLAN01", "title": "Expand into full WBS (inventory schema, borrow/return workflow, overdue/accountability tracking, QR/barcode tagging of equipment)", "category": "docs", "module": "lab-borrowing", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ],
+      "open_questions": ["Does equipment get its own QR/barcode (reusing the QR infra from P1.QR)?", "Fines/penalties for late/damaged returns — in scope or out?"]
+    }
+  ]
+}

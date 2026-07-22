@@ -1,0 +1,45 @@
+{
+  "$schema_note": "Phase 2 — Announcements, Extended Student Profile, Digital ID (kiosk scan mode). module-registry.json only defines these at summary level, so this file is intentionally shallow (goal + rough backend/frontend/db task stubs, not full task-by-task detail). Expand each work package to the same depth as the Phase 1 files (02-08) when Phase 2 is actually scheduled — do that expansion as its own WBS task, not by guessing ahead of real requirements.",
+  "phase": { "id": "P2", "name": "Announcements, Extended Student Profile, Digital ID", "roadmap_ref": "definition_data/overview/system-overview.json#roadmap.phase_2" },
+  "work_packages": [
+    {
+      "id": "P2.ANNOUNCEMENTS",
+      "name": "Announcements",
+      "module": "announcements",
+      "goal": "Targeted posts (all/course/year/section) with read tracking.",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[announcements]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.AUTH", "P1.NOTIF", "P1.CATALOG"],
+      "stub_tasks": [
+        { "id": "P2.ANNOUNCEMENTS.PLAN01", "title": "Expand into full WBS (DB schema, targeting rules, read-tracking model, CRUD API, composer UI, feed UI)", "category": "docs", "module": "announcements", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "Do this expansion when Phase 2 is scheduled, using the same work-package/task shape as 02-08." }
+      ],
+      "open_questions": ["Rich text or plain text composer?", "Attachments allowed?", "Does read-tracking need per-recipient rows (scale: ~2,000 students × N posts) or an aggregate count?"]
+    },
+    {
+      "id": "P2.STUDENT_PROFILE",
+      "name": "Student Profile (extended)",
+      "module": "student-profile",
+      "goal": "Extended profile beyond OSAS fields; documents; emergency contacts.",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[student-profile]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.STUDENTS"],
+      "stub_tasks": [
+        { "id": "P2.STUDENT_PROFILE.PLAN01", "title": "Expand into full WBS (new local-only fields, document upload/storage, emergency contact CRUD, UI)", "category": "docs", "module": "student-profile", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": null, "notes": "" }
+      ],
+      "open_questions": ["Which documents specifically (ID copies, medical certs, COR)?", "Who can view emergency contacts — same RBAC matrix as students, or a narrower set?"]
+    },
+    {
+      "id": "P2.DIGITAL_ID",
+      "name": "Digital ID",
+      "module": "digital-id",
+      "goal": "Per-student QR identity card enabling kiosk scan mode (faculty scans students, reversing the current student-scans-QR flow).",
+      "definition_refs": ["definition_data/overview/module-registry.json#future_modules[digital-id]"],
+      "status": "not_yet_detailed",
+      "depends_on_phase1": ["P1.QR", "P1.STUDENTS"],
+      "stub_tasks": [
+        { "id": "P2.DIGITAL_ID.PLAN01", "title": "Expand into full WBS (per-student stable-but-rotatable QR identity, kiosk scanning UI/hardware assumptions, reconciliation with existing scan-based attendance)", "category": "docs", "module": "digital-id", "depends_on": [], "estimate": {"value": null, "unit": "hours", "confidence": null}, "priority": null, "assignee": null, "status": "not_started", "start_date": null, "due_date": null, "risk": "Architecturally distinct from the current student-scans-faculty's-QR model — needs its own threat model, not a copy of qr_anti_fraud.", "notes": "" }
+      ],
+      "open_questions": ["Is a student's Digital ID QR static (like a badge) or still time-rotating?", "What hardware is the 'kiosk' — a tablet, a dedicated scanner, faculty's own device?", "Does this replace or run alongside the existing dynamic-QR-per-session model?"]
+    }
+  ]
+}
